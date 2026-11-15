@@ -12,8 +12,14 @@ Designed for peak focus, ZenClock operates entirely client-side with zero extern
 
 ## 🌟 Highlights & Key Features
 
-### 1. 🎨 Multiple Distinct UI Designs
-Switch seamlessly between 4 handcrafted visual layouts in real-time:
+### 1. 🌐 Unified Single-Page Architecture & Multiple UI Designs
+All core focus tools live together harmoniously on a single, continuous, distraction-free page with smooth anchor scrolling and scroll-spy tracking:
+* **Section 01 // Focus Timer:** Precision countdown with quick preset increments and 4 switchable visual layouts.
+* **Section 02 // Study & Pomodoro:** Science-backed Pomodoro intervals, deep work blocks, and 4-session cycle tracking.
+* **Section 03 // Stopwatch & Laps:** Millisecond split-second chronograph with fastest/slowest lap detection.
+* **Section 04 // Live Observatory:** Synchronized analog clock with smooth sweeping second hand and timezone telemetry.
+
+#### 4 Handcrafted Switchable UI Designs:
 * **Zen Minimalist (Default):** Ultra-clean, breathing circular progress ring with glassmorphic controls and calm aesthetics.
 * **Modern Studio:** Bauhaus architectural dial with segmented radial ticks, structured ergonomics, and warm amber accents.
 * **Cyberpunk Neon:** High-tech HUD framing, luminous cyan/amber glows, audio frequency simulation bars, and monospace segmented digital counters.

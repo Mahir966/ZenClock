@@ -20,6 +20,11 @@
   --accent-glow: rgba(96, 165, 250, 0.25);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
 body {
   color: var(--foreground);
   background-color: var(--background);

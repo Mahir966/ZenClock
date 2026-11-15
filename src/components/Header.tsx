@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useZenClock } from '@/context/ZenClockContext';
-import { MainTab } from '@/lib/types';
 import { LayoutSwitcher } from './LayoutSwitcher';
 import {
   Timer as TimerIcon,
@@ -20,29 +19,65 @@ import {
 } from 'lucide-react';
 
 interface HeaderProps {
-  currentTab: MainTab;
-  onSelectTab: (tab: MainTab) => void;
   onOpenSettings: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onOpenSettings }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
   const { preferences, setTheme, toggleMute, toggleFullscreen, isFullscreen } = useZenClock();
+  const [activeSection, setActiveSection] = useState('timer');
 
   const isDark = preferences.theme === 'dark';
 
-  const navItems: { id: MainTab; label: string; icon: React.FC<{ className?: string }> }[] = [
+  const navItems = [
     { id: 'timer', label: 'Timer', icon: TimerIcon },
-    { id: 'study', label: 'Study', icon: BookOpen },
+    { id: 'study', label: 'Study & Pomodoro', icon: BookOpen },
     { id: 'stopwatch', label: 'Stopwatch', icon: Watch },
     { id: 'clock', label: 'Analog Clock', icon: Clock },
   ];
 
+  // Scroll spy to highlight active section on the single page
+  useEffect(() => {
+    const sectionIds = ['timer', 'study', 'stopwatch', 'clock'];
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const headerOffset = 140;
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i];
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop - headerOffset;
+          if (scrollY >= top) {
+            setActiveSection(id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <header className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-2 select-none relative z-20">
-      <div className="flex items-center justify-between">
+    <header className="sticky top-0 w-full z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 transition-all select-none">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         {/* Brand Logo */}
-        <div className="flex items-center space-x-2.5">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 text-white">
+        <button
+          onClick={() => scrollTo('timer')}
+          className="flex items-center space-x-2.5 text-left group"
+          title="Scroll to Top"
+        >
+          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 text-white group-hover:scale-105 transition-transform">
             <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
           <div>
@@ -50,17 +85,17 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onOpenS
               ZenClock
             </h1>
           </div>
-        </div>
+        </button>
 
-        {/* Desktop Navigation Pill Bar */}
+        {/* Desktop Anchor Navigation */}
         <nav className="hidden md:flex items-center space-x-1 p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentTab === item.id;
+            const isActive = activeSection === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => onSelectTab(item.id)}
+                onClick={() => scrollTo(item.id)}
                 className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
                     ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm'
@@ -87,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onOpenS
                 ? 'bg-rose-500/10 text-rose-500 border-rose-500/30 hover:bg-rose-500/20'
                 : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/60'
             }`}
-            title={preferences.isMuted ? 'Unmute Audio (Visual alerts still active)' : 'Mute Audio'}
+            title={preferences.isMuted ? 'Unmute Audio (Visual alerts still active)' : 'Mute Audio [M]'}
           >
             {preferences.isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
@@ -114,29 +149,29 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onOpenS
           <button
             onClick={onOpenSettings}
             className="p-2 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all"
-            title="Settings & Alarm Sounds"
+            title="Preferences & Sounds"
           >
             <Sliders className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Mobile Bottom/Sub Navigation Bar */}
-      <div className="flex md:hidden items-center justify-around mt-3 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/70 border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+      {/* Mobile Sub Navigation Bar */}
+      <div className="flex md:hidden items-center justify-around px-4 pb-2.5 pt-0.5 max-w-full overflow-x-auto space-x-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id;
+          const isActive = activeSection === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => onSelectTab(item.id)}
-              className={`flex-1 flex flex-col items-center py-2 rounded-xl text-[11px] font-semibold transition-all ${
+              onClick={() => scrollTo(item.id)}
+              className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center space-x-1 transition-all whitespace-nowrap ${
                 isActive
-                  ? 'bg-white dark:bg-slate-900 text-sky-500 shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400'
+                  ? 'bg-sky-500 text-white shadow-sm'
+                  : 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400'
               }`}
             >
-              <Icon className="w-4 h-4 mb-0.5" />
+              <Icon className="w-3 h-3" />
               <span>{item.label}</span>
             </button>
           );

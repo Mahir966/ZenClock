@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" width="100%" height="100%">
+  <defs>
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02"/>
+    </linearGradient>
+    <linearGradient id="glow-cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="glow-purple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="glow-emerald" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="glow-amber" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="360" rx="20" fill="#090d16" stroke="#ffffff" stroke-opacity="0.1"/>
+
+  <!-- Card 1: Master Focus Timer -->
+  <g transform="translate(30, 30)">
+    <rect width="215" height="300" rx="18" fill="url(#card-grad)" stroke="#ffffff" stroke-opacity="0.15"/>
+    <circle cx="107" cy="65" r="32" fill="#0284c7" fill-opacity="0.15" stroke="#38bdf8" stroke-width="2"/>
+    <text x="107" y="73" font-size="28" text-anchor="middle">⏳</text>
+    <text x="107" y="130" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">Focus Suite</text>
+    <text x="107" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">Pomodoro &amp; Deep Work</text>
+    <text x="107" y="180" font-family="monospace" font-size="11" fill="#38bdf8" text-anchor="middle">• 4 UI Layout Styles</text>
+    <text x="107" y="202" font-family="monospace" font-size="11" fill="#38bdf8" text-anchor="middle">• Drift-Free Timing</text>
+    <text x="107" y="224" font-family="monospace" font-size="11" fill="#38bdf8" text-anchor="middle">• Custom Hour/Min/Sec</text>
+    <text x="107" y="246" font-family="monospace" font-size="11" fill="#38bdf8" text-anchor="middle">• 50 1-Min Quotes</text>
+  </g>
+
+  <!-- Card 2: Live Observatory -->
+  <g transform="translate(270, 30)">
+    <rect width="215" height="300" rx="18" fill="url(#card-grad)" stroke="#ffffff" stroke-opacity="0.15"/>
+    <circle cx="107" cy="65" r="32" fill="#7c3aed" fill-opacity="0.15" stroke="#c084fc" stroke-width="2"/>
+    <text x="107" y="73" font-size="28" text-anchor="middle">🕰️</text>
+    <text x="107" y="130" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">Analog Clock</text>
+    <text x="107" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">Observatory Module</text>
+    <text x="107" y="180" font-family="monospace" font-size="11" fill="#c084fc" text-anchor="middle">• Smooth Sweep Hand</text>
+    <text x="107" y="202" font-family="monospace" font-size="11" fill="#c084fc" text-anchor="middle">• 12H / 24H Toggle</text>
+    <text x="107" y="224" font-family="monospace" font-size="11" fill="#c084fc" text-anchor="middle">• Date Telemetry</text>
+    <text x="107" y="246" font-family="monospace" font-size="11" fill="#c084fc" text-anchor="middle">• IANA Timezone Sync</text>
+  </g>
+
+  <!-- Card 3: Chronograph -->
+  <g transform="translate(510, 30)">
+    <rect width="215" height="300" rx="18" fill="url(#card-grad)" stroke="#ffffff" stroke-opacity="0.15"/>
+    <circle cx="107" cy="65" r="32" fill="#059669" fill-opacity="0.15" stroke="#34d399" stroke-width="2"/>
+    <text x="107" y="73" font-size="28" text-anchor="middle">⏱️</text>
+    <text x="107" y="130" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">Chronograph</text>
+    <text x="107" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">Split Precision Stopwatch</text>
+    <text x="107" y="180" font-family="monospace" font-size="11" fill="#34d399" text-anchor="middle">• Millisecond Splits</text>
+    <text x="107" y="202" font-family="monospace" font-size="11" fill="#34d399" text-anchor="middle">• Infinite Lap Counter</text>
+    <text x="107" y="224" font-family="monospace" font-size="11" fill="#34d399" text-anchor="middle">• Best/Slow Lap Badges</text>
+    <text x="107" y="246" font-family="monospace" font-size="11" fill="#34d399" text-anchor="middle">• 1-Click Clipboard Copy</text>
+  </g>
+
+  <!-- Card 4: Cultural & Weather Telemetry -->
+  <g transform="translate(750, 30)">
+    <rect width="215" height="300" rx="18" fill="url(#card-grad)" stroke="#ffffff" stroke-opacity="0.15"/>
+    <circle cx="107" cy="65" r="32" fill="#d97706" fill-opacity="0.15" stroke="#fbbf24" stroke-width="2"/>
+    <text x="107" y="73" font-size="28" text-anchor="middle">🌦️</text>
+    <text x="107" y="130" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">Smart Telemetry</text>
+    <text x="107" y="155" font-family="-apple-system, sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">Cultural &amp; Weather</text>
+    <text x="107" y="180" font-family="monospace" font-size="11" fill="#fbbf24" text-anchor="middle">• IP-Based Weather</text>
+    <text x="107" y="202" font-family="monospace" font-size="11" fill="#fbbf24" text-anchor="middle">• 🇧🇩 Bangla Calendar</text>
+    <text x="107" y="224" font-family="monospace" font-size="11" fill="#fbbf24" text-anchor="middle">• 🌙 Hijri Lunar Date</text>
+    <text x="107" y="246" font-family="monospace" font-size="11" fill="#fbbf24" text-anchor="middle">• Fluid Liquid Glass</text>
+  </g>
+</svg>

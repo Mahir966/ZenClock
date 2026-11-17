@@ -1,7 +1,25 @@
 {
   "name": "zen-clock",
   "version": "1.0.0",
-  "private": true,
+  "description": "ZenClock — Production-grade single-page zero-scroll focus suite with Liquid Glass design, precision timers, study sessions, live analog clock, and IP-based weather.",
+  "author": "Mahir Ahmed (https://mahir966.github.io/ME/)",
+  "homepage": "https://mahir966.github.io/ZenClock/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mahir966/ZenClock.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "zenclock",
+    "timer",
+    "pomodoro",
+    "stopwatch",
+    "analog-clock",
+    "liquid-glass",
+    "nextjs",
+    "threejs",
+    "productivity"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

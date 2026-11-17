@@ -1,215 +1,215 @@
-# ⏱️ ZenClock — Premium Modern Timer & Productivity Suite
+# ⏱️ ZenClock — The Ultra-Modern Single-Page Focus Suite
 
-![ZenClock Banner](https://img.shields.io/badge/ZenClock-Next.js%2015%20%7C%20TypeScript%20%7C%20Tailwind%20CSS%20%7C%20Three.js-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-emerald?style=for-the-badge)
-![GitHub Pages](https://img.shields.io/badge/Deployment-GitHub%20Pages%20Ready-purple?style=for-the-badge)
+<p align="center">
+  <img src="assets/zenclock-banner.svg" alt="ZenClock Banner" width="100%" />
+</p>
 
-**ZenClock** is a state-of-the-art, distraction-free timer, study companion, stopwatch, and live analog clock web application. Built with Next.js 15, TypeScript, Tailwind CSS, Lucide Icons, and Three.js for subtle 3D ambient visual depth.
+<p align="center">
+  <a href="https://github.com/mahir966/ZenClock/blob/main/LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-emerald?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="MIT License" />
+  </a>
+  <a href="https://nextjs.org/">
+    <img src="https://img.shields.io/badge/Next.js-15.1-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  </a>
+  <a href="https://tailwindcss.com/">
+    <img src="https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  </a>
+  <a href="https://threejs.org/">
+    <img src="https://img.shields.io/badge/Three.js-r173-black?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" />
+  </a>
+  <a href="https://mahir966.github.io/ZenClock/">
+    <img src="https://img.shields.io/badge/Deployment-GitHub%20Pages%20Live-purple?style=for-the-badge&logo=githubpages&logoColor=white" alt="GitHub Pages" />
+  </a>
+</p>
 
-Designed for peak focus, ZenClock operates entirely client-side with zero external database or backend dependencies, offers 100% offline accuracy across background tabs, and provides multiple switchable visual layouts tailored to different work styles.
+<p align="center">
+  <strong>ZenClock</strong> is a production-grade, zero-scroll productivity and focus suite engineered for peak cognitive performance. Designed with Apple-inspired <em>Fluid Liquid Glass</em> aesthetics, real-time millisecond accuracy, subtle 3D Three.js particle halos, cultural calendar telemetry, and IP-based local weather integration.
+</p>
 
----
-
-## 🌟 Highlights & Key Features
-
-### 1. 🌐 Unified Single-Page Architecture & Multiple UI Designs
-All core focus tools live together harmoniously on a single, continuous, distraction-free page with smooth anchor scrolling and scroll-spy tracking:
-* **Section 01 // Focus Timer:** Precision countdown with quick preset increments and 4 switchable visual layouts.
-* **Section 02 // Study & Pomodoro:** Science-backed Pomodoro intervals, deep work blocks, and 4-session cycle tracking.
-* **Section 03 // Stopwatch & Laps:** Millisecond split-second chronograph with fastest/slowest lap detection.
-* **Section 04 // Live Observatory:** Synchronized analog clock with smooth sweeping second hand and timezone telemetry.
-
-#### 4 Handcrafted Switchable UI Designs:
-* **Zen Minimalist (Default):** Ultra-clean, breathing circular progress ring with glassmorphic controls and calm aesthetics.
-* **Modern Studio:** Bauhaus architectural dial with segmented radial ticks, structured ergonomics, and warm amber accents.
-* **Cyberpunk Neon:** High-tech HUD framing, luminous cyan/amber glows, audio frequency simulation bars, and monospace segmented digital counters.
-* **Spatial 3D:** Three.js-powered interactive particle halo, gyroscopic orbital rings, and holographic depth responsive to timer status.
-
-### 2. ⏳ Precision Countdown Timer
-* **Accurate Background Tab Timing:** Uses `Date.now()` timestamp delta calculation to eliminate browser tab-throttling drift. Time stays 100% accurate even when tabs are inactive.
-* **Custom Durations:** Interactive hours, minutes, and seconds spinner modal.
-* **Quick Presets:** Instant `+1m`, `+5m`, `+10m`, `+15m`, `+25m`, `+30m`, `+45m`, and `+60m` increment buttons.
-* **Dynamic Tab Title:** Live remaining time reflected in the browser tab title (e.g. `(14:32) ZenClock`).
-
-### 3. 🍅 Comprehensive Study & Pomodoro Suite
-* **Structured Modes:** Pomodoro (25m), Deep Work (50m), Short Break (5m), and Long Break (15m).
-* **Cycle Tracking:** 4-session focus cycle with visual progress dots and celebratory confetti upon cycle completion.
-* **Automation Toggles:** Optional auto-start for breaks and pomodoro intervals.
-* **Daily Streak Counter:** Tracks completed daily focus blocks with `localStorage` persistence.
-
-### 4. ⏱️ High-Precision Stopwatch
-* **Millisecond Precision:** Centisecond / millisecond timing display (`00:00:00.00`).
-* **Lap Recording:** Split and overall elapsed times with automatic **Best Lap** (green) and **Slowest Lap** (red) badges.
-* **Copy & Export:** One-click clipboard copy of lap times in formatted text.
-
-### 5. 🔔 Classic Android-Inspired Alarm Sounds
-Locally stored high-fidelity audio assets with zero external network reliance:
-* **Oxygen:** Warm acoustic marimba with soothing dual-tone chime.
-* **Argon:** Upbeat rhythmic electro-chime alarm sequence.
-* **Cesium:** Cascading harp bells with rich harmonics.
-* **Digital Beep:** High-clarity twin-frequency alarm beeper.
-* **Zen Singing Bowl:** Deep Tibetan singing bowl with meditative binaural resonance.
-* **Gentle Chimes:** Crystalline wind chimes with stereo panning.
-* **Morning Breeze:** Pentatonic morning flute and acoustic warmth.
-* **Web Audio Synth Fallback:** Procedural chime that works even if audio decoding fails.
-* **Sound Preview & Volume Slider:** Instant playback preview and 0–100% volume control.
-
-### 6. 🔊 Sound Permissions & Autoplay Handling
-* First-visit non-intrusive sound activation prompt.
-* AudioContext unlocking to satisfy modern browser autoplay restrictions.
-
-### 7. 🔇 Dedicated Mute Control
-* Top bar mute/unmute button with tooltip and `[M]` keyboard shortcut.
-* **Crucial Behavior:** Muting disables audio playback but **never suppresses visual alarm alerts**.
-
-### 8. 🚨 Visual Alarm Completion Alert
-* When any timer or study session reaches zero, the entire viewport **continuously flashes between intense alert red and white**.
-* An unmissable alert dialog presents a **"Dismiss Alarm"** button.
-* Keyboard dismiss via `[Space]` or `[Esc]`.
-
-### 9. 🕒 Live Analog Clock
-* Real-time device clock with smooth continuous sweep second hand (or crisp step tick).
-* Inset date complication badge, 12h/24h digital readout, and timezone offset indicator (`GMT+X`).
-
-### 10. 🌓 Themes & Fullscreen
-* Instant Dark Mode and Light Mode switching with system preference auto-detection.
-* Native HTML5 fullscreen toggle (`[Esc]` exits normally).
-* All user preferences automatically persisted in `localStorage`.
+<p align="center">
+  <a href="https://mahir966.github.io/ZenClock/"><strong>Explore Live Application »</strong></a>
+  &nbsp;•&nbsp;
+  <a href="#-quick-start"><strong>Quick Start</strong></a>
+  &nbsp;•&nbsp;
+  <a href="#-feature-matrix"><strong>Features</strong></a>
+  &nbsp;•&nbsp;
+  <a href="#-author--copyright"><strong>Author</strong></a>
+</p>
 
 ---
 
-## 📸 Screenshots & Layout Walkthrough
+## 🌟 Executive Summary
 
-```
-+-------------------------------------------------------------------------+
-|  [⚡ ZenClock]    ( Timer | Study | Stopwatch | Clock )   [🎨 Layout] [🔊] [🌙] [⛶] |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|                                   * .                                   |
-|                              *  3D HALO  *                              |
-|                             *  PARTICLES  *                             |
-|                                   . *                                   |
-|                                                                         |
-|                                 ( 24:59 )                               |
-|                               FLOW STATE                                |
-|                                                                         |
-|                       [↺]       [ ▶ ]       [⚙]                         |
-|                                                                         |
-|                         [+1m]  [+5m]  [+10m]  [+15m]                    |
-|                                                                         |
-+-------------------------------------------------------------------------+
-|  ZenClock • [M] Mute Audio • [Esc] Dismiss Alert • Preferences & Sounds |
-+-------------------------------------------------------------------------+
-```
+ZenClock solves the common flaws of online timers: tab-throttling timing drift, cluttered scrolling pages, intrusive ads, and dependency on external servers. 
+
+Built entirely client-side with zero backend dependencies, **ZenClock** delivers:
+- **Zero-Scroll Unified Layout:** Everything fits precisely on a single, non-scrolling dashboard viewport for desktop, tablet, and mobile.
+- **Fluid Liquid Glass Aesthetics:** Specular refraction highlight strips, chromatic edge glow, and deep 44px backdrop blur inspired by Apple visionOS.
+- **Background-Tab Timing Accuracy:** Employs absolute `Date.now()` timestamp delta calculation to eliminate browser tab-throttling drift.
+- **Cultural & Environmental Telemetry:** Real-time IP-based live weather (`°C`), Bangladeshi National Solar Calendar (`2 Ograhayon 1433`), and Umm al-Qura Hijri Lunar Date (`Jumada al-Thani 1448 AH`).
+- **Dual Runtime Distribution:** Ships both as a modern static **Next.js 15 SPA** and as an instant standalone **zero-dependency `index.html`** that runs by double-clicking in any operating system file explorer.
 
 ---
 
-## 🛠️ Technology Stack
+## 🏛️ Architecture Overview
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js 15 (App Router)](https://nextjs.org/) |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com/) |
-| **3D Graphics** | [Three.js](https://threejs.org/) |
-| **Icons** | [Lucide React](https://lucide.dev/) |
-| **Effects** | [Canvas Confetti](https://github.com/catdad/canvas-confetti) |
-| **Audio** | HTML5 Audio + Web Audio API Synthesis |
-| **Architecture** | 100% Client-Side Static Export (`output: 'export'`) |
+<p align="center">
+  <img src="assets/features-overview.svg" alt="ZenClock Features Overview" width="100%" />
+</p>
 
----
+ZenClock is structured into four cohesive, concurrently active modules:
 
-## 🚀 Getting Started
-
-### Prerequisites
-* [Node.js](https://nodejs.org/) v18.17.0 or later (v20+ recommended)
-* `npm` or `pnpm` or `yarn`
-
-### Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/ZenClock.git
-   cd ZenClock
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Generate audio assets (if needed):**
-   ```bash
-   npm run generate-sounds
-   ```
-   *(Local sound files are generated into `public/sounds/`)*
-
-4. **Run the local development server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+| Module | Core Capabilities | Highlights |
+| :--- | :--- | :--- |
+| **⏳ Master Focus Suite** | Custom countdown, Pomodoro (25m), Deep Work (50m), Short Break (5m), Long Break (15m) | 4 switchable layouts (Zen, Studio, Cyber, Spatial), 6 quick add presets, 4-stage cycle dots |
+| **💡 Motivational Engine** | 50 curated quotes from timeless philosophers, scientists, and stoics | Auto-rotates every 60 seconds with smooth cross-fade animation or manual skip |
+| **🕰️ Live Observatory** | Synchronized analog timepiece with continuous SVG clockface | Smooth continuous sweep second hand, 12H/24H toggle, date window, IANA timezone |
+| **⏱️ Chronograph & Laps** | Millisecond-precision split stopwatch | Infinite lap list, fastest (green) / slowest (red) split tagging, 1-click clipboard copy |
+| **🌦️ Environmental HUD** | Real-time weather and cultural calendar tracking | IP-based client geolocation (no API keys required), WMO weather code symbols, dual calendars |
 
 ---
 
-## 🏗️ Build & Static Export
+## 🎨 4 Switchable UI Layouts
 
-To build the static HTML/CSS/JS export for production:
+ZenClock allows switching timer visualization modes on the fly:
+
+1. **Zen Minimalist (Default):** Fluid breathing circular arc with soft chromatic glow and glassmorphic typography.
+2. **Modern Studio:** Bauhaus-inspired radial dial with 48 segmented tick marks and completed percentage readout.
+3. **Cyberpunk Neon:** High-contrast HUD container with vibrant cyan and violet neon border glows and pulse meters.
+4. **Spatial 3D:** Interactive Three.js particle halo with gyroscopic orbital orientation responding to timer states.
+
+---
+
+## 🔔 Sound System & Android Classic Alarm Tones
+
+ZenClock features an audio pipeline combining **HTML5 local audio playback** and an automated **Web Audio API polyphonic synthesizer fallback** ensuring audio triggers under all circumstances.
+
+### 12 Locally Stored High-Fidelity Tones
+1. **Alarm 1 (Melody):** High-clarity acoustic melody alert.
+2. **Alarm 2 (Pulse):** Rhythmic dual-tempo pulsing alert.
+3. **Alarm 3 (Crystal Bell):** Crystalline harmonic bell chime.
+4. **Alarm 4 (Deep Chime):** Rich resonance acoustic chime.
+5. **Alarm 5 (Serene Wave):** Ambient restorative frequency chime.
+6. **Oxygen:** Classic Android-inspired warm marimba chime.
+7. **Argon:** Upbeat electronic alert.
+8. **Cesium:** Cascading harp chime sequence.
+9. **Digital Beep:** Industrial twin-frequency piezo alert.
+10. **Zen Bowl:** Resonant Tibetan singing bowl.
+11. **Gentle Chime:** Crystalline wind chime.
+12. **Morning Breeze:** Acoustic sunrise chime.
+
+> [!IMPORTANT]
+> **Continuous Visual Blinking Alert:** When a countdown finishes, ZenClock triggers a continuous red-to-white visual flash across the entire screen. In compliance with accessibility requirements, muting audio **never** suppresses this visual alert.
+
+---
+
+## ⚡ Quick Start & Installation
+
+### Option A: Standalone Execution (No Node.js Required)
+Double-click `index.html` in your file explorer. It runs immediately in any modern browser (Chrome, Edge, Firefox, Safari) using embedded scripts and local audio.
+
+### Option B: Next.js Development Server
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/mahir966/ZenClock.git
+cd ZenClock
+
+# 2. Install dependencies
+npm install
+
+# 3. Launch local development server
+npm run dev
+```
+
+Visit `http://localhost:3000` to interact with ZenClock locally.
+
+---
+
+## 🛠️ Production Build & Export
+
+```bash
+# Build static production export
 npm run build
 ```
 
-This generates an optimized static export in the `./out` directory ready for deployment to any static web host or CDN.
+This generates an optimized static distribution in the `./out` directory, ready to be hosted on any static provider (GitHub Pages, Vercel, Netlify, Cloudflare Pages, S3).
 
 ---
 
-## 🌐 GitHub Pages Deployment Guide
+## 🚀 GitHub Pages Deployment
 
-ZenClock is pre-configured for seamless GitHub Pages deployment using static export and GitHub Actions.
-
-### Method 1: Automated GitHub Actions (Recommended)
+ZenClock is pre-configured with a GitHub Actions workflow in `.github/workflows/deploy.yml`:
 
 1. Push your repository to GitHub:
    ```bash
-   git remote add origin https://github.com/your-username/ZenClock.git
+   git remote add origin https://github.com/mahir966/ZenClock.git
    git branch -M main
    git push -u origin main
    ```
-2. In your GitHub repository, navigate to **Settings** → **Pages**.
-3. Under **Build and deployment** → **Source**, select **GitHub Actions**.
-4. The included `.github/workflows/deploy.yml` workflow will automatically trigger on push to `main` and publish the site!
+2. In your GitHub repository settings:
+   - Navigate to **Settings** → **Pages**.
+   - Under **Build and deployment** → **Source**, select **GitHub Actions**.
+3. Every push to the `main` branch automatically builds and publishes the production site at:
+   `https://<username>.github.io/ZenClock/`
 
-### Method 2: Manual Build & Push to `gh-pages` Branch
+---
 
-If you prefer building locally and pushing to the `gh-pages` branch:
+## 📂 Repository File Structure
 
-```bash
-# Build the project
-npm run build
-
-# Deploy using gh-pages package
-npx gh-pages -d out --dotfiles
 ```
-
-> **Note on Base Path:** If hosting on `https://<username>.github.io/<repository-name>/`, ZenClock includes auto-detection for GitHub Pages subpaths. You can also specify the base path during build:
-> ```bash
-> NEXT_PUBLIC_BASE_PATH=/ZenClock npm run build
-> ```
+ZenClock/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml          # Automated GitHub Pages CI/CD workflow
+├── assets/
+│   ├── zenclock-banner.svg     # Official vector banner
+│   └── features-overview.svg   # Architectural module diagram
+├── public/
+│   ├── logo.png                # Brand hourglass icon
+│   └── sounds/                 # 12 locally stored alarm files
+├── src/
+│   ├── app/
+│   │   ├── globals.css         # Liquid Glass CSS & animations
+│   │   ├── layout.tsx          # Root HTML metadata
+│   │   └── page.tsx            # Full Next.js single-page application
+│   └── lib/
+│       ├── audio.ts            # Web Audio + HTML5 audio engine
+│       ├── constants.ts        # Presets, 12 sounds, 50 quotes
+│       ├── types.ts            # TypeScript interfaces
+│       └── utils.ts            # Bangla/Hijri algorithms & formatters
+├── index.html                  # 100% standalone offline single-file app
+├── LICENSE                     # MIT Open Source License
+├── next.config.mjs             # Next.js static export configuration
+├── package.json                # Project dependencies & metadata
+├── tailwind.config.ts          # Tailwind styling tokens
+└── tsconfig.json               # TypeScript strict configuration
+```
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `Space` | Start / Pause active timer or stopwatch |
-| `M` / `m` | Toggle Audio Mute (Visual alerts remain active) |
-| `Esc` | Dismiss flashing completion alert or exit fullscreen |
-| `Enter` | Dismiss active alarm alert |
+| Key | Action |
+| :--- | :--- |
+| `[Space]` | Start / Pause Timer (or dismiss active alarm alert) |
+| `[ESC]` | Dismiss active alarm alert / Exit Fullscreen |
+| `[M]` | Toggle Master Audio Mute (visual alert remains active) |
 
 ---
 
-## 📄 License
+## 👤 Author & Copyright
 
-This project is licensed under the [MIT License](LICENSE).
+**ZenClock** is designed and engineered by **Mahir Ahmed**.
+
+- **Portfolio:** [https://mahir966.github.io/ME/](https://mahir966.github.io/ME/)
+- **GitHub:** [@mahir966](https://github.com/mahir966)
+- **Project Repository:** [https://github.com/mahir966/ZenClock](https://github.com/mahir966/ZenClock)
+- **Live Demo:** [https://mahir966.github.io/ZenClock/](https://mahir966.github.io/ZenClock/)
+
+### License
+This project is open-source software licensed under the [MIT License](LICENSE).  
+Copyright © 2026 **Mahir Ahmed**. All rights reserved.

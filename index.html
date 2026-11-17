@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>ZenClock — Modern Focus Suite</title>
+  <!-- Tailwind CSS via CDN for standalone file:/// execution -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js for 3D background -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            sky: { 500: '#0ea5e9', 400: '#38bdf8' }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .tabular { font-variant-numeric: tabular-nums; }
+    @keyframes alarmFlash {
+      0%, 100% { background-color: #dc2626 !important; color: #ffffff !important; }
+      50% { background-color: #ffffff !important; color: #000000 !important; }
+    }
+    .alarm-active {
+      animation: alarmFlash 0.5s infinite ease-in-out !important;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors duration-300 h-screen w-screen flex flex-col justify-between">
+
+  <!-- 3D Three.js Background Canvas -->
+  <div id="three-container" class="fixed inset-0 pointer-events-none z-0 opacity-70"></div>
+
+  <!-- TOP HEADER -->
+  <header class="relative z-20 w-full px-4 sm:px-6 py-2.5 border-b border-slate-200/60 dark:border-slate-800/60 bg-white/75 dark:bg-slate-950/75 backdrop-blur-md flex items-center justify-between shrink-0">
+    <!-- Brand -->
+    <div class="flex items-center space-x-2.5">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+        <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+      </div>
+      <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+        ZenClock
+      </h1>
+    </div>
+
+    <!-- Live System Clock Badge -->
+    <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 text-xs font-mono">
+      <svg class="w-3.5 h-3.5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span id="header-live-time" class="font-semibold tabular">--:--:--</span>
+      <span class="text-slate-400">•</span>
+      <span id="header-live-date" class="text-slate-500 dark:text-slate-400">---</span>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex items-center space-x-1.5 sm:space-x-2">
+      <!-- Layout Style Pills -->
+      <div class="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/60 dark:border-slate-700/60 text-xs">
+        <button id="style-btn-zen" onclick="setDesignStyle('zen')" class="px-2.5 py-1 rounded-lg font-semibold bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all">Zen</button>
+        <button id="style-btn-studio" onclick="setDesignStyle('studio')" class="px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all">Studio</button>
+        <button id="style-btn-cyber" onclick="setDesignStyle('cyber')" class="px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all">Cyber</button>
+        <button id="style-btn-spatial" onclick="setDesignStyle('spatial')" class="px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all">Spatial</button>
+      </div>
+
+      <!-- Mute Toggle -->
+      <button id="mute-btn" onclick="toggleMute()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Toggle Mute [M]">
+        <svg id="mute-icon-unmuted" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+        <svg id="mute-icon-muted" class="w-4 h-4 text-rose-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12 0l-6-6m0 6l6-6"></path></svg>
+      </button>
+
+      <!-- Settings / Sounds Trigger -->
+      <button onclick="openSettingsModal()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Sound & Preferences">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+      </button>
+
+      <!-- Theme Toggle -->
+      <button onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Toggle Theme">
+        <svg id="theme-icon-sun" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <svg id="theme-icon-moon" class="w-4 h-4 text-slate-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button onclick="toggleFullscreen()" class="hidden sm:flex p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Toggle Fullscreen">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN SINGLE-PAGE NO-SCROLL DASHBOARD -->
+  <main class="relative z-10 flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 min-h-0">
+    
+    <!-- LEFT PANEL: FOCUS & STUDY SUITE (7 Cols) -->
+    <div class="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg relative min-h-0">
+      
+      <!-- Mode Chips Bar -->
+      <div class="flex items-center space-x-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 max-w-full overflow-x-auto shrink-0">
+        <button id="mode-countdown" onclick="switchTimerMode('countdown', 1500)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all">Custom Timer</button>
+        <button id="mode-pomodoro" onclick="switchTimerMode('pomodoro', 1500)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Pomodoro (25m)</button>
+        <button id="mode-deep" onclick="switchTimerMode('deep_work', 3000)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Deep Work (50m)</button>
+        <button id="mode-short" onclick="switchTimerMode('short_break', 300)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Short Break (5m)</button>
+        <button id="mode-long" onclick="switchTimerMode('long_break', 900)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Long Break (15m)</button>
+      </div>
+
+      <!-- TIMER VISUALIZATION CENTERPIECE -->
+      <div id="timer-display-container" class="flex-1 flex flex-col items-center justify-center my-2 sm:my-4 relative">
+        
+        <!-- 1. Zen Layout -->
+        <div id="layout-zen" class="relative flex items-center justify-center">
+          <div id="zen-glow" class="absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-sky-500/10"></div>
+          <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 260 260">
+              <circle cx="130" cy="130" r="110" class="stroke-slate-200/60 dark:stroke-slate-800/70" stroke-width="5" fill="transparent" />
+              <circle id="zen-arc" cx="130" cy="130" r="110" stroke="#38bdf8" stroke-width="6" stroke-dasharray="691.15" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" class="transition-[stroke-dashoffset] duration-200 ease-linear" />
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="timer-digits-zen" onclick="openCustomPicker()" class="text-5xl sm:text-6xl font-mono font-bold tracking-tight tabular cursor-pointer hover:opacity-85 transition-opacity" title="Click to edit">25:00</span>
+              <span id="timer-status-zen" class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-1">Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Studio Layout (Hidden by default) -->
+        <div id="layout-studio" class="relative w-56 h-56 sm:w-68 sm:h-68 flex items-center justify-center hidden">
+          <svg id="studio-svg" class="w-full h-full -rotate-90 transform" viewBox="0 0 280 280"></svg>
+          <div class="absolute inset-10 rounded-full bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center shadow-lg">
+            <span id="timer-digits-studio" onclick="openCustomPicker()" class="text-5xl sm:text-6xl font-mono font-extrabold tracking-tight tabular text-amber-500 cursor-pointer">25:00</span>
+            <span id="studio-percent" class="text-[10px] font-mono font-bold tracking-widest uppercase text-slate-400 mt-1">0% COMPLETE</span>
+          </div>
+        </div>
+
+        <!-- 3. Cyber Layout (Hidden by default) -->
+        <div id="layout-cyber" class="w-full max-w-sm p-5 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative hidden">
+          <div class="flex items-center justify-between text-[10px] font-mono text-cyan-400 mb-2">
+            <span>SYS://CYBER_TIMER</span>
+            <span id="cyber-status">STATUS: STANDBY</span>
+          </div>
+          <div class="text-center my-2">
+            <span id="timer-digits-cyber" onclick="openCustomPicker()" class="text-5xl sm:text-6xl font-mono font-black text-cyan-300 drop-shadow-[0_0_15px_rgba(6,182,212,0.6)] cursor-pointer tabular">25:00</span>
+          </div>
+          <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-cyan-900/60 mt-3">
+            <div id="cyber-progress" class="bg-cyan-400 h-full shadow-[0_0_10px_#22d3ee] transition-all duration-200" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- 4. Spatial 3D Layout (Hidden by default) -->
+        <div id="layout-spatial" class="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-indigo-500/10 via-slate-900/70 to-purple-500/10 border border-white/20 dark:border-white/10 shadow-2xl flex flex-col items-center justify-center p-4 hidden">
+          <svg class="w-5 h-5 text-indigo-400 animate-spin mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2" stroke-dasharray="16" /></svg>
+          <span id="timer-digits-spatial" onclick="openCustomPicker()" class="text-5xl sm:text-6xl font-mono font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] cursor-pointer tabular">25:00</span>
+          <span class="text-[10px] font-mono uppercase tracking-widest text-indigo-300/80 mt-1">Spatial Ready</span>
+        </div>
+
+        <!-- Pomodoro Cycle Dots -->
+        <div id="pomodoro-cycle-bar" class="mt-3 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 hidden">
+          <span>Cycle:</span>
+          <div class="flex items-center space-x-1.5">
+            <div id="p-dot-1" class="h-2 w-5 rounded-full bg-sky-500 transition-all"></div>
+            <div id="p-dot-2" class="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700 transition-all"></div>
+            <div id="p-dot-3" class="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700 transition-all"></div>
+            <div id="p-dot-4" class="h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700 transition-all"></div>
+          </div>
+          <button onclick="advancePomodoroCycle()" class="ml-2 hover:text-sky-500 transition-colors p-1" title="Advance cycle">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TIMER ACTION CONTROLS -->
+      <div class="flex flex-col items-center space-y-3 shrink-0">
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <!-- Reset Button -->
+          <button onclick="resetTimer()" class="p-3 sm:p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all active:scale-95" title="Reset Timer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          </button>
+
+          <!-- Primary Start / Pause / Resume Button -->
+          <button id="timer-main-action-btn" onclick="toggleTimerMainAction()" class="py-3 px-8 sm:px-10 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-sky-500/25 transition-all transform hover:scale-105 active:scale-95">
+            <svg id="timer-action-icon" class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+            <span id="timer-action-text">START</span>
+          </button>
+
+          <!-- Set Custom Time Trigger -->
+          <button onclick="openCustomPicker()" class="p-3 sm:p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all active:scale-95" title="Set Custom Time">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+          </button>
+        </div>
+
+        <!-- Quick Presets Bar -->
+        <div class="flex items-center space-x-1 sm:space-x-1.5 overflow-x-auto max-w-full py-0.5">
+          <button onclick="addSeconds(60)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+1m</button>
+          <button onclick="addSeconds(300)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+5m</button>
+          <button onclick="addSeconds(600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+10m</button>
+          <button onclick="addSeconds(900)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+15m</button>
+          <button onclick="addSeconds(1500)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+25m</button>
+          <button onclick="addSeconds(3600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+60m</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: ANALOG CLOCK + STOPWATCH (5 Cols) -->
+    <div class="lg:col-span-5 flex flex-col justify-between gap-3 sm:gap-4 min-h-0">
+      
+      <!-- TOP RIGHT: LIVE ANALOG CLOCK -->
+      <div class="p-3.5 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg flex items-center justify-between min-h-0">
+        <!-- SVG Clock Face -->
+        <div class="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
+          <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-md">
+            <circle cx="100" cy="100" r="95" class="fill-slate-100/90 dark:fill-slate-950/90 stroke-slate-300/80 dark:stroke-slate-700/80" stroke-width="2.5" />
+            <circle cx="100" cy="100" r="91" class="fill-white/80 dark:fill-slate-900/60" />
+            
+            <!-- Dial Ticks -->
+            <g id="analog-dial-ticks"></g>
+            
+            <!-- Date Window -->
+            <rect x="132" y="91" width="24" height="18" rx="3" class="fill-slate-200 dark:fill-slate-800" />
+            <text id="clock-date-number" x="144" y="104" text-anchor="middle" class="text-[9px] font-bold fill-sky-500 tabular">17</text>
+
+            <!-- Hands -->
+            <g id="hand-hour"><line x1="100" y1="110" x2="100" y2="52" stroke="currentColor" class="stroke-slate-800 dark:stroke-slate-200" stroke-width="4" stroke-linecap="round" /></g>
+            <g id="hand-min"><line x1="100" y1="115" x2="100" y2="30" stroke="currentColor" class="stroke-slate-700 dark:stroke-slate-300" stroke-width="2.8" stroke-linecap="round" /></g>
+            <g id="hand-sec">
+              <line x1="100" y1="120" x2="100" y2="22" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" />
+              <circle cx="100" cy="112" r="3" fill="#ef4444" />
+            </g>
+            <circle cx="100" cy="100" r="4" class="fill-slate-900 dark:fill-white" />
+            <circle cx="100" cy="100" r="1.5" fill="#ef4444" />
+          </svg>
+        </div>
+
+        <!-- Analog Clock Readouts & Controls -->
+        <div class="flex-1 pl-4 flex flex-col justify-center space-y-1.5 min-w-0">
+          <span id="clock-timezone" class="text-[10px] font-mono uppercase tracking-widest text-slate-400 truncate">LOCAL TIME</span>
+          <div id="clock-digital-display" class="text-xl sm:text-2xl font-mono font-bold tracking-tight tabular text-slate-900 dark:text-white">--:--:--</div>
+          <div id="clock-date-display" class="text-xs font-medium text-slate-500 dark:text-slate-400">---</div>
+          <div class="flex items-center space-x-2 pt-1">
+            <button onclick="toggleSweep()" id="btn-sweep" class="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 border border-slate-200/60 dark:border-slate-700/60 transition-colors">Sweep</button>
+            <button onclick="toggle24H()" id="btn-24h" class="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 border border-slate-200/60 dark:border-slate-700/60 transition-colors">12H</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM RIGHT: PRECISION CHRONOGRAPH / STOPWATCH -->
+      <div class="flex-1 p-3.5 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg flex flex-col justify-between min-h-0">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Chronograph</span>
+          <button id="copy-laps-btn" onclick="copyLaps()" class="text-[11px] text-slate-400 hover:text-sky-500 flex items-center space-x-1 transition-colors">
+            <span>Copy</span>
+          </button>
+        </div>
+
+        <!-- Stopwatch Display -->
+        <div class="flex items-baseline justify-center my-2 shrink-0">
+          <span id="sw-main" class="text-4xl sm:text-5xl font-mono font-bold tracking-tight tabular">00:00</span>
+          <span id="sw-cs" class="text-xl sm:text-2xl font-mono font-semibold text-sky-500 ml-1.5 tabular">.00</span>
+        </div>
+
+        <!-- Stopwatch Buttons -->
+        <div id="sw-controls" class="flex items-center justify-center space-x-2 py-1 shrink-0">
+          <button id="sw-start-btn" onclick="startStopwatch()" class="flex-1 py-1.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all">Start</button>
+          <button id="sw-lap-btn" onclick="recordStopwatchLap()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs hidden border border-slate-200/60 dark:border-slate-700/60">Lap</button>
+          <button id="sw-pause-btn" onclick="pauseStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs hidden">Pause</button>
+          <button id="sw-reset-btn" onclick="resetStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs hidden border border-slate-200/60 dark:border-slate-700/60">Reset</button>
+          <button id="sw-resume-btn" onclick="resumeStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs hidden">Resume</button>
+        </div>
+
+        <!-- Laps List -->
+        <div id="sw-laps-list" class="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 text-xs font-mono mt-1">
+          <div class="h-full flex items-center justify-center text-slate-400 text-[11px] italic">Press &quot;Lap&quot; while running to record splits</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- COMPACT FOOTER -->
+  <footer class="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-slate-200/60 dark:border-slate-800/60 bg-white/75 dark:bg-slate-950/75 backdrop-blur-md flex items-center justify-between text-xs text-slate-400 shrink-0">
+    <div class="flex items-center space-x-3">
+      <span>[Space] / [ESC] Dismiss Alert</span>
+      <span>•</span>
+      <span>[M] Mute Sound</span>
+    </div>
+    <div class="flex items-center space-x-2">
+      <span>Sound: <strong id="footer-sound-name">Oxygen</strong></span>
+      <span>•</span>
+      <button onclick="openSettingsModal()" class="hover:text-sky-500 underline underline-offset-2 transition-colors font-medium">Preferences</button>
+    </div>
+  </footer>
+
+  <!-- CUSTOM TIME PICKER MODAL (WORKING 100%) -->
+  <div id="modal-custom-picker" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+    <div class="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="font-bold text-base">Set Custom Duration</h3>
+        <button onclick="closeCustomPicker()" class="p-1 rounded-full text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="flex items-center justify-center space-x-4 my-6">
+        <!-- Hours -->
+        <div class="flex flex-col items-center">
+          <button onclick="stepCustomHours(1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+</button>
+          <input id="input-custom-hrs" type="number" min="0" max="23" value="0" class="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular" />
+          <button onclick="stepCustomHours(-1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">-</button>
+          <span class="text-[10px] font-semibold text-slate-400 uppercase mt-1">Hours</span>
+        </div>
+        <span class="text-2xl font-mono font-bold text-slate-400 pb-5">:</span>
+        <!-- Mins -->
+        <div class="flex flex-col items-center">
+          <button onclick="stepCustomMins(1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+</button>
+          <input id="input-custom-mins" type="number" min="0" max="59" value="25" class="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular" />
+          <button onclick="stepCustomMins(-1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">-</button>
+          <span class="text-[10px] font-semibold text-slate-400 uppercase mt-1">Mins</span>
+        </div>
+        <span class="text-2xl font-mono font-bold text-slate-400 pb-5">:</span>
+        <!-- Secs -->
+        <div class="flex flex-col items-center">
+          <button onclick="stepCustomSecs(1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+</button>
+          <input id="input-custom-secs" type="number" min="0" max="59" value="0" class="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular" />
+          <button onclick="stepCustomSecs(-1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">-</button>
+          <span class="text-[10px] font-semibold text-slate-400 uppercase mt-1">Secs</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="closeCustomPicker()" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+        <button onclick="applyCustomPicker()" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/25">Apply Duration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOUNDS & PREFERENCES MODAL -->
+  <div id="modal-settings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
+    <div class="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+        <h3 class="font-bold text-base">Sound & Preferences</h3>
+        <button onclick="closeSettingsModal()" class="p-1 rounded-full text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-4 space-y-4">
+        <!-- Volume Slider -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span id="settings-volume-label">Volume: 80%</span>
+          </div>
+          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.8" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500" />
+        </div>
+
+        <!-- Sounds List -->
+        <div class="space-y-1.5" id="settings-sound-list"></div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+        <button onclick="closeSettingsModal()" class="py-2 px-5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition-all">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALARM COMPLETION ALERT OVERLAY (CONTINUOUS BLINKING) -->
+  <div id="alarm-overlay" class="fixed inset-0 z-50 pointer-events-none alarm-active opacity-90 hidden"></div>
+  <div id="alarm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="relative w-full max-w-md p-8 rounded-3xl bg-slate-950/95 border-2 border-red-500 text-center text-white shadow-[0_0_80px_rgba(239,68,68,0.8)] backdrop-blur-2xl">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center animate-pulse">
+        <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+      </div>
+      <h2 class="text-3xl font-black uppercase tracking-tight">Time&apos;s Up!</h2>
+      <p id="alarm-alert-text" class="text-base font-medium text-red-200 mt-2">Timer has finished!</p>
+      <button onclick="dismissAlarm()" class="w-full mt-6 py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-extrabold text-lg uppercase tracking-wider shadow-lg shadow-red-500/50 transition-all">Dismiss Alarm</button>
+      <p class="text-xs text-slate-400 mt-3">Press [Space] or [ESC] to stop</p>
+    </div>
+  </div>
+
+  <!-- CLIENT-SIDE SCRIPT LOGIC (100% STANDALONE COMPLIANT) -->
+  <script>
+    // Audio synthesizer & playback engine
+    const SOUNDS = [
+      { id: 'oxygen', name: 'Oxygen', desc: 'Warm Android marimba' },
+      { id: 'argon', name: 'Argon', desc: 'Upbeat electronic chime' },
+      { id: 'cesium', name: 'Cesium', desc: 'Cascading harp bells' },
+      { id: 'digital_beep', name: 'Digital Beep', desc: 'Classic dual beeper' },
+      { id: 'zen_bowl', name: 'Zen Bowl', desc: 'Deep singing bowl' },
+      { id: 'gentle_chime', name: 'Gentle Chimes', desc: 'Crystalline wind chimes' },
+      { id: 'morning_breeze', name: 'Morning Breeze', desc: 'Acoustic sunrise melody' },
+    ];
+
+    let currentSound = 'oxygen';
+    let masterVolume = 0.8;
+    let isMuted = false;
+    let audioCtx = null;
+    let alarmInterval = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(freq1, freq2, duration, type='sine') {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq1, now);
+        if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, now + duration * 0.4);
+        gain.gain.setValueAtTime(masterVolume * 0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.05);
+      } catch (e) {}
+    }
+
+    function playSoundTone(soundId) {
+      if (soundId === 'argon') playTone(739.99, 1479.98, 0.4, 'triangle');
+      else if (soundId === 'cesium') playTone(587.33, 1174.66, 0.6, 'sine');
+      else if (soundId === 'digital_beep') playTone(880, 1760, 0.35, 'square');
+      else if (soundId === 'zen_bowl') playTone(261.63, 523.25, 1.8, 'sine');
+      else if (soundId === 'gentle_chime') playTone(1174.66, 2349.32, 0.5, 'triangle');
+      else if (soundId === 'morning_breeze') playTone(392, 783.99, 0.7, 'sine');
+      else playTone(523.25, 1046.5, 0.5, 'sine');
+    }
+
+    function startAlarmLoop(soundId) {
+      stopAlarmLoop();
+      playSoundTone(soundId);
+      alarmInterval = setInterval(() => playSoundTone(soundId), 900);
+    }
+
+    function stopAlarmLoop() {
+      if (alarmInterval) { clearInterval(alarmInterval); alarmInterval = null; }
+    }
+
+    // Timer Variables
+    let timerDuration = 1500;
+    let timerRemaining = 1500;
+    let isTimerRunning = false;
+    let isTimerPaused = false;
+    let timerTargetEnd = null;
+    let timerTickInterval = null;
+    let currentMode = 'countdown';
+    let pomodoroSession = 1;
+    let currentDesignStyle = 'zen';
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+    function formatTime(sec) {
+      const s = Math.max(0, Math.ceil(sec));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sc = s % 60;
+      return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sc)}` : `${pad(m)}:${pad(sc)}`;
+    }
+
+    function updateTimerUI() {
+      const formatted = formatTime(timerRemaining);
+      document.getElementById('timer-digits-zen').textContent = formatted;
+      document.getElementById('timer-digits-studio').textContent = formatted;
+      document.getElementById('timer-digits-cyber').textContent = formatted;
+      document.getElementById('timer-digits-spatial').textContent = formatted;
+
+      const progress = timerDuration > 0 ? (timerDuration - timerRemaining) / timerDuration : 0;
+      const arc = document.getElementById('zen-arc');
+      if (arc) {
+        const circum = 691.15;
+        arc.style.strokeDashoffset = circum - (1 - progress) * circum;
+      }
+      const cyberBar = document.getElementById('cyber-progress');
+      if (cyberBar) cyberBar.style.width = `${progress * 100}%`;
+      const studioPct = document.getElementById('studio-percent');
+      if (studioPct) studioPct.textContent = `${Math.round(progress * 100)}% COMPLETE`;
+
+      if (isTimerRunning && !isTimerPaused) {
+        document.title = `(${formatted}) ZenClock`;
+      }
+    }
+
+    function startTimer() {
+      getAudioCtx();
+      if (timerRemaining <= 0) {
+        timerRemaining = timerDuration;
+        timerTargetEnd = Date.now() + timerDuration * 1000;
+      } else {
+        timerTargetEnd = Date.now() + timerRemaining * 1000;
+      }
+      isTimerRunning = true;
+      isTimerPaused = false;
+
+      document.getElementById('timer-action-text').textContent = 'PAUSE';
+      document.getElementById('timer-main-action-btn').className = 'py-3 px-8 sm:px-10 rounded-2xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-amber-500/25 transition-all';
+      document.getElementById('timer-status-zen').textContent = 'FLOW STATE';
+      document.getElementById('zen-glow').className = 'absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-sky-500/25 scale-105';
+
+      if (timerTickInterval) clearInterval(timerTickInterval);
+      timerTickInterval = setInterval(() => {
+        if (!timerTargetEnd) return;
+        const diffMs = timerTargetEnd - Date.now();
+        if (diffMs <= 0) {
+          timerRemaining = 0;
+          pauseTimer(true);
+          triggerAlarm();
+        } else {
+          timerRemaining = Math.ceil(diffMs / 1000);
+          updateTimerUI();
+        }
+      }, 150);
+    }
+
+    function pauseTimer(ended = false) {
+      if (timerTargetEnd && !ended) {
+        timerRemaining = Math.max(0, Math.ceil((timerTargetEnd - Date.now()) / 1000));
+      }
+      timerTargetEnd = null;
+      isTimerRunning = false;
+      isTimerPaused = !ended;
+      if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
+
+      document.getElementById('timer-action-text').textContent = isTimerPaused ? 'RESUME' : 'START';
+      document.getElementById('timer-main-action-btn').className = isTimerPaused
+        ? 'py-3 px-8 sm:px-10 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-emerald-500/25 transition-all'
+        : 'py-3 px-8 sm:px-10 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-sky-500/25 transition-all';
+      document.getElementById('timer-status-zen').textContent = isTimerPaused ? 'PAUSED' : 'READY';
+      document.getElementById('zen-glow').className = 'absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-sky-500/10 scale-95';
+      updateTimerUI();
+    }
+
+    function toggleTimerMainAction() {
+      if (!isTimerRunning) startTimer();
+      else pauseTimer();
+    }
+
+    function resetTimer() {
+      pauseTimer(true);
+      timerRemaining = timerDuration;
+      document.title = 'ZenClock — Modern Focus Suite';
+      updateTimerUI();
+    }
+
+    function addSeconds(sec) {
+      timerDuration = Math.max(1, timerDuration + sec);
+      timerRemaining = Math.max(1, timerRemaining + sec);
+      if (timerTargetEnd) timerTargetEnd += sec * 1000;
+      updateTimerUI();
+    }
+
+    function switchTimerMode(mode, sec) {
+      currentMode = mode;
+      timerDuration = sec;
+      timerRemaining = sec;
+      pauseTimer(true);
+
+      const modes = ['countdown', 'pomodoro', 'deep', 'short', 'long'];
+      modes.forEach(m => {
+        const btn = document.getElementById(`mode-${m}`);
+        if (btn) btn.className = 'flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all';
+      });
+      const activeBtn = document.getElementById(`mode-${mode === 'deep_work' ? 'deep' : mode === 'short_break' ? 'short' : mode === 'long_break' ? 'long' : mode}`);
+      if (activeBtn) activeBtn.className = 'flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all';
+
+      const cycleBar = document.getElementById('pomodoro-cycle-bar');
+      if (mode === 'pomodoro') cycleBar.classList.remove('hidden');
+      else cycleBar.classList.add('hidden');
+
+      updateTimerUI();
+    }
+
+    function advancePomodoroCycle() {
+      pomodoroSession = pomodoroSession >= 4 ? 1 : pomodoroSession + 1;
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`p-dot-${i}`);
+        if (i === pomodoroSession) dot.className = 'h-2 w-5 rounded-full bg-sky-500 transition-all';
+        else if (i < pomodoroSession) dot.className = 'h-2 w-2 rounded-full bg-emerald-500 transition-all';
+        else dot.className = 'h-2 w-2 rounded-full bg-slate-300 dark:bg-slate-700 transition-all';
+      }
+    }
+
+    // Custom Picker Modal Logic
+    function openCustomPicker() {
+      const h = Math.floor(timerDuration / 3600);
+      const m = Math.floor((timerDuration % 3600) / 60);
+      const s = timerDuration % 60;
+      document.getElementById('input-custom-hrs').value = h;
+      document.getElementById('input-custom-mins').value = m;
+      document.getElementById('input-custom-secs').value = s;
+      document.getElementById('modal-custom-picker').classList.remove('hidden');
+    }
+    function closeCustomPicker() {
+      document.getElementById('modal-custom-picker').classList.add('hidden');
+    }
+    function stepCustomHours(delta) {
+      const el = document.getElementById('input-custom-hrs');
+      el.value = Math.max(0, Math.min(23, (parseInt(el.value) || 0) + delta));
+    }
+    function stepCustomMins(delta) {
+      const el = document.getElementById('input-custom-mins');
+      let val = (parseInt(el.value) || 0) + delta;
+      if (val > 59) val = 0; if (val < 0) val = 59;
+      el.value = val;
+    }
+    function stepCustomSecs(delta) {
+      const el = document.getElementById('input-custom-secs');
+      let val = (parseInt(el.value) || 0) + delta;
+      if (val > 59) val = 0; if (val < 0) val = 59;
+      el.value = val;
+    }
+    function applyCustomPicker() {
+      const h = parseInt(document.getElementById('input-custom-hrs').value) || 0;
+      const m = parseInt(document.getElementById('input-custom-mins').value) || 0;
+      const s = parseInt(document.getElementById('input-custom-secs').value) || 0;
+      const totalSec = Math.max(1, h * 3600 + m * 60 + s);
+      timerDuration = totalSec;
+      timerRemaining = totalSec;
+      pauseTimer(true);
+      updateTimerUI();
+      closeCustomPicker();
+    }
+
+    // Layout Style Switcher
+    function setDesignStyle(style) {
+      currentDesignStyle = style;
+      ['zen', 'studio', 'cyber', 'spatial'].forEach(s => {
+        document.getElementById(`layout-${s}`).classList.add('hidden');
+        document.getElementById(`style-btn-${s}`).className = 'px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all';
+      });
+      document.getElementById(`layout-${style}`).classList.remove('hidden');
+      document.getElementById(`style-btn-${style}`).className = 'px-2.5 py-1 rounded-lg font-semibold bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all';
+      updateTimerUI();
+    }
+
+    // Alarm Alert Handling
+    function triggerAlarm() {
+      document.body.classList.add('alarm-active');
+      document.getElementById('alarm-overlay').classList.remove('hidden');
+      document.getElementById('alarm-modal').classList.remove('hidden');
+      document.title = "⏰ TIME'S UP! — ZenClock";
+      startAlarmLoop(currentSound);
+    }
+    function dismissAlarm() {
+      document.body.classList.remove('alarm-active');
+      document.getElementById('alarm-overlay').classList.add('hidden');
+      document.getElementById('alarm-modal').classList.add('hidden');
+      document.title = 'ZenClock — Modern Focus Suite';
+      stopAlarmLoop();
+    }
+
+    // Stopwatch Logic
+    let swStart = null;
+    let swAccum = 0;
+    let swRunning = false;
+    let swInterval = null;
+    let laps = [];
+
+    function formatStopwatch(ms) {
+      const cs = Math.floor(ms / 10) % 100;
+      const totalSec = Math.floor(ms / 1000);
+      const s = totalSec % 60;
+      const m = Math.floor((totalSec % 3600) / 60);
+      const h = Math.floor(totalSec / 3600);
+      const main = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+      return { main, cs: pad(cs) };
+    }
+
+    function updateStopwatchUI() {
+      const current = swStart ? swAccum + (Date.now() - swStart) : swAccum;
+      const f = formatStopwatch(current);
+      document.getElementById('sw-main').textContent = f.main;
+      document.getElementById('sw-cs').textContent = `.${f.cs}`;
+    }
+
+    function startStopwatch() {
+      swStart = Date.now();
+      swRunning = true;
+      document.getElementById('sw-start-btn').classList.add('hidden');
+      document.getElementById('sw-lap-btn').classList.remove('hidden');
+      document.getElementById('sw-pause-btn').classList.remove('hidden');
+      document.getElementById('sw-reset-btn').classList.add('hidden');
+      document.getElementById('sw-resume-btn').classList.add('hidden');
+      swInterval = setInterval(updateStopwatchUI, 25);
+    }
+
+    function pauseStopwatch() {
+      if (swStart) swAccum += Date.now() - swStart;
+      swStart = null;
+      swRunning = false;
+      if (swInterval) clearInterval(swInterval);
+      document.getElementById('sw-lap-btn').classList.add('hidden');
+      document.getElementById('sw-pause-btn').classList.add('hidden');
+      document.getElementById('sw-reset-btn').classList.remove('hidden');
+      document.getElementById('sw-resume-btn').classList.remove('hidden');
+      updateStopwatchUI();
+    }
+
+    function resumeStopwatch() {
+      startStopwatch();
+    }
+
+    function resetStopwatch() {
+      pauseStopwatch();
+      swAccum = 0;
+      laps = [];
+      document.getElementById('sw-reset-btn').classList.add('hidden');
+      document.getElementById('sw-resume-btn').classList.add('hidden');
+      document.getElementById('sw-start-btn').classList.remove('hidden');
+      document.getElementById('sw-laps-list').innerHTML = '<div class="h-full flex items-center justify-center text-slate-400 text-[11px] italic">Press "Lap" while running to record splits</div>';
+      updateStopwatchUI();
+    }
+
+    function recordStopwatchLap() {
+      if (!swRunning) return;
+      const total = swStart ? swAccum + (Date.now() - swStart) : swAccum;
+      const lastTotal = laps.length > 0 ? laps[0].total : 0;
+      const split = total - lastTotal;
+      laps.unshift({ num: laps.length + 1, split, total });
+
+      const container = document.getElementById('sw-laps-list');
+      container.innerHTML = laps.map(l => {
+        const s = formatStopwatch(l.split);
+        const t = formatStopwatch(l.total);
+        return `<div class="flex items-center justify-between py-1 px-1"><span class="text-slate-400 w-10">#${l.num}</span><span class="tabular">+${s.main}.${s.cs}</span><span class="text-slate-400 tabular text-[11px]">${t.main}.${t.cs}</span></div>`;
+      }).join('');
+    }
+
+    function copyLaps() {
+      if (laps.length === 0) return;
+      const txt = laps.map(l => {
+        const s = formatStopwatch(l.split);
+        const t = formatStopwatch(l.total);
+        return `Lap ${l.num}: +${s.main}.${s.cs} (Total: ${t.main}.${t.cs})`;
+      }).join('\n');
+      navigator.clipboard.writeText(txt);
+      const btn = document.getElementById('copy-laps-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    }
+
+    // Analog Clock Realtime Ticking
+    let isSmoothSweep = true;
+    let is24H = false;
+
+    function renderAnalogDialTicks() {
+      const g = document.getElementById('analog-dial-ticks');
+      if (!g) return;
+      let ticks = '';
+      for (let i = 0; i < 12; i++) {
+        const rad = (i * 30 * Math.PI) / 180;
+        const x1 = 100 + 78 * Math.sin(rad);
+        const y1 = 100 - 78 * Math.cos(rad);
+        const x2 = 100 + 87 * Math.sin(rad);
+        const y2 = 100 - 87 * Math.cos(rad);
+        ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="currentColor" class="stroke-slate-400 dark:stroke-slate-500" stroke-width="${i % 3 === 0 ? 2.5 : 1.2}" stroke-linecap="round" />`;
+      }
+      g.innerHTML = ticks;
+    }
+
+    function tickLiveClock() {
+      const d = new Date();
+      const ms = d.getMilliseconds();
+      const s = d.getSeconds();
+      const m = d.getMinutes();
+      const h = d.getHours();
+
+      const secVal = isSmoothSweep ? s + ms / 1000 : s;
+      const minVal = m + secVal / 60;
+      const hrVal = (h % 12) + minVal / 60;
+
+      document.getElementById('hand-hour').setAttribute('transform', `rotate(${hrVal * 30}, 100, 100)`);
+      document.getElementById('hand-min').setAttribute('transform', `rotate(${minVal * 6}, 100, 100)`);
+      document.getElementById('hand-sec').setAttribute('transform', `rotate(${secVal * 6}, 100, 100)`);
+
+      document.getElementById('clock-date-number').textContent = d.getDate();
+      const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      document.getElementById('clock-date-display').textContent = dateStr;
+      document.getElementById('header-live-date').textContent = dateStr;
+
+      const time12 = `${pad(h % 12 || 12)}:${pad(m)}:${pad(s)} ${h >= 12 ? 'PM' : 'AM'}`;
+      const time24 = `${pad(h)}:${pad(m)}:${pad(s)}`;
+      const displayTime = is24H ? time24 : time12;
+      document.getElementById('clock-digital-display').textContent = displayTime;
+      document.getElementById('header-live-time').textContent = displayTime;
+
+      requestAnimationFrame(tickLiveClock);
+    }
+
+    function toggleSweep() {
+      isSmoothSweep = !isSmoothSweep;
+      document.getElementById('btn-sweep').textContent = isSmoothSweep ? 'Sweep' : 'Tick';
+    }
+    function toggle24H() {
+      is24H = !is24H;
+      document.getElementById('btn-24h').textContent = is24H ? '24H' : '12H';
+    }
+
+    // Theme & Settings
+    function toggleTheme() {
+      const html = document.documentElement;
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        document.getElementById('theme-icon-sun').classList.add('hidden');
+        document.getElementById('theme-icon-moon').classList.remove('hidden');
+      } else {
+        html.classList.add('dark');
+        document.getElementById('theme-icon-sun').classList.remove('hidden');
+        document.getElementById('theme-icon-moon').classList.add('hidden');
+      }
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById('mute-icon-unmuted').classList.toggle('hidden', isMuted);
+      document.getElementById('mute-icon-muted').classList.toggle('hidden', !isMuted);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    function openSettingsModal() {
+      const container = document.getElementById('settings-sound-list');
+      container.innerHTML = SOUNDS.map(s => {
+        const sel = s.id === currentSound;
+        return `<div onclick="selectSound('${s.id}')" class="flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-sky-500/10 border-sky-500 text-sky-500' : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800'}"><div><div class="text-xs font-bold">${s.name}</div><div class="text-[10px] text-slate-400">${s.desc}</div></div><button onclick="event.stopPropagation(); playSoundTone('${s.id}')" class="p-1 px-2 text-xs bg-slate-200 dark:bg-slate-700 rounded-md">Preview</button></div>`;
+      }).join('');
+      document.getElementById('modal-settings').classList.remove('hidden');
+    }
+    function closeSettingsModal() {
+      document.getElementById('modal-settings').classList.add('hidden');
+    }
+    function selectSound(id) {
+      currentSound = id;
+      document.getElementById('footer-sound-name').textContent = SOUNDS.find(x => x.id === id).name;
+      openSettingsModal();
+    }
+    function setMasterVolume(v) {
+      masterVolume = parseFloat(v);
+      document.getElementById('settings-volume-label').textContent = `Volume: ${Math.round(masterVolume * 100)}%`;
+    }
+
+    // Keyboard bindings
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (e.key === ' ' || e.key === 'Escape') {
+        dismissAlarm();
+      }
+      if (e.key === 'm' || e.key === 'M') {
+        toggleMute();
+      }
+    });
+
+    // 3D Three.js Initializer
+    function initThree() {
+      const container = document.getElementById('three-container');
+      if (!container || typeof THREE === 'undefined') return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 20;
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      container.appendChild(renderer.domElement);
+
+      const group = new THREE.Group();
+      scene.add(group);
+
+      const pCount = 800;
+      const pos = new Float32Array(pCount * 3);
+      for (let i = 0; i < pCount; i++) {
+        const u = Math.random() * Math.PI * 2;
+        const v = Math.random() * Math.PI * 2;
+        const R = 8.0 + (Math.random() - 0.5) * 2;
+        const r = 2.0 + (Math.random() - 0.5) * 1;
+        pos[i * 3] = (R + r * Math.cos(v)) * Math.cos(u);
+        pos[i * 3 + 1] = (R + r * Math.cos(v)) * Math.sin(u);
+        pos[i * 3 + 2] = r * Math.sin(v);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({ size: 0.12, color: 0x38bdf8, transparent: true, opacity: 0.5 });
+      const points = new THREE.Points(geo, mat);
+      group.add(points);
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      function anim() {
+        requestAnimationFrame(anim);
+        group.rotation.y += 0.002;
+        group.rotation.x += 0.001;
+        renderer.render(scene, camera);
+      }
+      anim();
+    }
+
+    // Initialize On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAnalogDialTicks();
+      tickLiveClock();
+      updateTimerUI();
+      initThree();
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
+        document.getElementById('clock-timezone').textContent = tz;
+      } catch (e) {}
+    });
+  </script>
+</body>
+</html>

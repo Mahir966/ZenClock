@@ -1,5 +1,7 @@
 export type ThemeMode = 'dark' | 'light';
 
+export type PaletteId = 'midnight' | 'silver' | 'carbon' | 'warm-sand' | 'sage' | 'arctic';
+
 export type DesignStyle = 'zen' | 'studio' | 'cyber' | 'spatial';
 
 export type TimerMode = 'countdown' | 'pomodoro' | 'deep_work' | 'short_break' | 'long_break';

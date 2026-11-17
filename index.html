@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-palette="midnight">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>ZenClock — Futuristic Focus Suite</title>
+  <title>ZenClock — Neutral Liquid Glass Focus Suite</title>
   <link rel="icon" type="image/png" href="logo.png">
   <!-- Tailwind CSS via CDN for standalone file:/// execution -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,11 +15,10 @@
       theme: {
         extend: {
           colors: {
-            purple: {
-              400: '#c084fc',
-              500: '#a855f7',
-              600: '#9333ea',
-              700: '#7e22ce'
+            neutral: {
+              850: '#1f1f23',
+              900: '#18181b',
+              950: '#09090b',
             }
           }
         }
@@ -27,16 +26,129 @@
     };
   </script>
   <style>
+    /* ═════════════════════════════════════════════════════════════════
+       NEUTRAL MULTI-PALETTE DESIGN SYSTEM (6 PROFESSIONALLY DESIGNED THEMES)
+       ═════════════════════════════════════════════════════════════════ */
+    :root, [data-palette="midnight"] {
+      --bg-root: #060709;
+      --canvas-border: rgba(255, 255, 255, 0.08);
+      --glass-card: rgba(15, 17, 21, 0.58);
+      --glass-card-border: rgba(255, 255, 255, 0.08);
+      --glass-card-hover: rgba(241, 245, 249, 0.22);
+      --glass-highlight: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(255, 255, 255, 0.03), transparent);
+      --fg-primary: #ffffff;
+      --fg-secondary: #cbd5e1;
+      --fg-muted: #94a3b8;
+      --accent-primary: #f8fafc;
+      --accent-secondary: #94a3b8;
+      --accent-btn-bg: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+      --accent-btn-hover: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+      --accent-btn-text: #ffffff;
+      --accent-glow: rgba(255, 255, 255, 0.12);
+    }
+    [data-palette="silver"] {
+      --bg-root: #0a0c10;
+      --canvas-border: rgba(226, 232, 240, 0.12);
+      --glass-card: rgba(22, 27, 36, 0.55);
+      --glass-card-border: rgba(226, 232, 240, 0.12);
+      --glass-card-hover: rgba(226, 232, 240, 0.3);
+      --glass-highlight: linear-gradient(90deg, transparent, rgba(226, 232, 240, 0.4), transparent);
+      --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(226, 232, 240, 0.05), transparent);
+      --fg-primary: #ffffff;
+      --fg-secondary: #cbd5e1;
+      --fg-muted: #94a3b8;
+      --accent-primary: #e2e8f0;
+      --accent-secondary: #94a3b8;
+      --accent-btn-bg: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+      --accent-btn-hover: linear-gradient(135deg, #475569 0%, #334155 100%);
+      --accent-btn-text: #ffffff;
+      --accent-glow: rgba(226, 232, 240, 0.18);
+    }
+    [data-palette="carbon"] {
+      --bg-root: #09090b;
+      --canvas-border: rgba(212, 212, 216, 0.1);
+      --glass-card: rgba(24, 24, 27, 0.58);
+      --glass-card-border: rgba(212, 212, 216, 0.1);
+      --glass-card-hover: rgba(212, 212, 216, 0.28);
+      --glass-highlight: linear-gradient(90deg, transparent, rgba(212, 212, 216, 0.38), transparent);
+      --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(212, 212, 216, 0.04), transparent);
+      --fg-primary: #fafafa;
+      --fg-secondary: #d4d4d8;
+      --fg-muted: #a1a1aa;
+      --accent-primary: #e4e4e7;
+      --accent-secondary: #a1a1aa;
+      --accent-btn-bg: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+      --accent-btn-hover: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+      --accent-btn-text: #fafafa;
+      --accent-glow: rgba(212, 212, 216, 0.16);
+    }
+    [data-palette="warm-sand"] {
+      --bg-root: #0c0b09;
+      --canvas-border: rgba(231, 223, 213, 0.12);
+      --glass-card: rgba(28, 24, 21, 0.58);
+      --glass-card-border: rgba(231, 223, 213, 0.12);
+      --glass-card-hover: rgba(231, 223, 213, 0.32);
+      --glass-highlight: linear-gradient(90deg, transparent, rgba(231, 223, 213, 0.4), transparent);
+      --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(231, 223, 213, 0.05), transparent);
+      --fg-primary: #fdfbf7;
+      --fg-secondary: #e7dfd5;
+      --fg-muted: #b8aba0;
+      --accent-primary: #f5ede3;
+      --accent-secondary: #d6c7b2;
+      --accent-btn-bg: linear-gradient(135deg, #383029 0%, #241f1a 100%);
+      --accent-btn-hover: linear-gradient(135deg, #4a4038 0%, #383029 100%);
+      --accent-btn-text: #fdfbf7;
+      --accent-glow: rgba(231, 223, 213, 0.18);
+    }
+    [data-palette="sage"] {
+      --bg-root: #080c0a;
+      --canvas-border: rgba(163, 184, 153, 0.12);
+      --glass-card: rgba(19, 27, 22, 0.58);
+      --glass-card-border: rgba(163, 184, 153, 0.12);
+      --glass-card-hover: rgba(163, 184, 153, 0.32);
+      --glass-highlight: linear-gradient(90deg, transparent, rgba(163, 184, 153, 0.4), transparent);
+      --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(163, 184, 153, 0.05), transparent);
+      --fg-primary: #f3f7f4;
+      --fg-secondary: #c9d9cb;
+      --fg-muted: #8e9f90;
+      --accent-primary: #b8ccad;
+      --accent-secondary: #8ea384;
+      --accent-btn-bg: linear-gradient(135deg, #233428 0%, #16221a 100%);
+      --accent-btn-hover: linear-gradient(135deg, #304737 0%, #233428 100%);
+      --accent-btn-text: #f3f7f4;
+      --accent-glow: rgba(163, 184, 153, 0.18);
+    }
+    [data-palette="arctic"] {
+      --bg-root: #06090e;
+      --canvas-border: rgba(186, 230, 253, 0.12);
+      --glass-card: rgba(16, 23, 34, 0.58);
+      --glass-card-border: rgba(186, 230, 253, 0.12);
+      --glass-card-hover: rgba(186, 230, 253, 0.32);
+      --glass-highlight: linear-gradient(90deg, transparent, rgba(186, 230, 253, 0.4), transparent);
+      --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(186, 230, 253, 0.05), transparent);
+      --fg-primary: #f0f9ff;
+      --fg-secondary: #cbd5e1;
+      --fg-muted: #94a3b8;
+      --accent-primary: #e0f2fe;
+      --accent-secondary: #93c5fd;
+      --accent-btn-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      --accent-btn-hover: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+      --accent-btn-text: #f0f9ff;
+      --accent-glow: rgba(186, 230, 253, 0.18);
+    }
+
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: #07080c;
-      color: #f8fafc;
+      background-color: var(--bg-root);
+      color: var(--fg-primary);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       user-select: none;
       -webkit-user-select: none;
+      transition: background-color 0.4s ease, color 0.4s ease;
     }
     .tabular { font-variant-numeric: tabular-nums; }
     @keyframes alarmFlash {
@@ -47,141 +159,100 @@
       animation: alarmFlash 0.5s infinite ease-in-out !important;
     }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: var(--glass-card-border); border-radius: 9999px; }
 
-    /* ───── Futuristic Dark Liquid Glass System (Reference Inspired) ───── */
-
+    /* Outer Floating Canvas: Transparent so Three.js shines through all gaps */
     .dashboard-outer-canvas {
-      background: radial-gradient(
-        circle at 50% -20%,
-        rgba(147, 51, 234, 0.12) 0%,
-        rgba(15, 17, 28, 0.88) 55%,
-        rgba(7, 8, 12, 0.95) 100%
-      );
-      backdrop-filter: blur(48px) saturate(1.4);
-      -webkit-backdrop-filter: blur(48px) saturate(1.4);
-      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: transparent;
+      border: 1px solid var(--canvas-border);
       box-shadow:
-        0 30px 100px -15px rgba(0, 0, 0, 0.85),
-        0 0 1px 1px rgba(255, 255, 255, 0.05),
-        inset 0 1px 1px rgba(255, 255, 255, 0.12);
-    }
-    .light .dashboard-outer-canvas {
-      background: radial-gradient(
-        circle at 50% -20%,
-        rgba(192, 132, 252, 0.15) 0%,
-        rgba(255, 255, 255, 0.9) 60%,
-        rgba(241, 245, 249, 0.95) 100%
-      );
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+        0 25px 80px -20px rgba(0, 0, 0, 0.7),
+        0 0 1px 1px var(--canvas-border);
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
     }
 
+    /* Translucent Liquid Glass Card */
     .liquid-glass {
       position: relative;
-      background: linear-gradient(
-        145deg,
-        rgba(24, 27, 40, 0.55) 0%,
-        rgba(14, 16, 26, 0.42) 100%
-      );
-      backdrop-filter: blur(36px) saturate(1.4);
-      -webkit-backdrop-filter: blur(36px) saturate(1.4);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: var(--glass-card);
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      border: 1px solid var(--glass-card-border);
       box-shadow:
-        0 8px 32px 0 rgba(0, 0, 0, 0.45),
+        0 8px 32px 0 rgba(0, 0, 0, 0.35),
         inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+      transition: background 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
     .liquid-glass:hover {
-      border-color: rgba(168, 85, 247, 0.25);
-      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.55), 0 0 20px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      border-color: var(--glass-card-hover);
+      box-shadow:
+        0 12px 40px 0 rgba(0, 0, 0, 0.45),
+        0 0 20px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
-    .light .liquid-glass {
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.65) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 0 8px 24px 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
-
     .liquid-glass::before {
       content: '';
       position: absolute;
       top: 0; left: 8%; right: 8%;
       height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(192, 132, 252, 0.35) 25%,
-        rgba(168, 85, 247, 0.5) 50%,
-        rgba(99, 102, 241, 0.3) 75%,
-        transparent 100%
-      );
+      background: var(--glass-highlight);
       border-radius: 999px;
       pointer-events: none;
       z-index: 1;
+      transition: background 0.4s ease;
     }
     .liquid-glass::after {
       content: '';
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background: radial-gradient(ellipse 70% 35% at 50% 0%, rgba(168, 85, 247, 0.05) 0%, transparent 70%);
+      background: var(--glass-inner-glow);
       pointer-events: none;
       z-index: 1;
+      transition: background 0.4s ease;
     }
 
     .liquid-header {
-      background: linear-gradient(180deg, rgba(24, 27, 40, 0.65) 0%, rgba(14, 16, 26, 0.45) 100%);
-      backdrop-filter: blur(36px) saturate(1.4);
-      -webkit-backdrop-filter: blur(36px) saturate(1.4);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    }
-    .light .liquid-header {
-      background: rgba(255, 255, 255, 0.75);
-      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-      box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
+      background: var(--glass-card);
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      border-bottom: 1px solid var(--glass-card-border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      transition: background 0.4s ease, border-color 0.4s ease;
     }
 
     .liquid-btn {
       background: rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-card-border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.2);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .liquid-btn:hover {
       background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(168, 85, 247, 0.35);
-      box-shadow: 0 0 14px rgba(168, 85, 247, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      border-color: var(--glass-card-hover);
+      box-shadow: 0 0 14px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.12);
       transform: translateY(-1px);
     }
     .liquid-btn:active {
       transform: translateY(0) scale(0.98);
     }
-    .light .liquid-btn {
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-    }
-    .light .liquid-btn:hover {
-      background: rgba(255, 255, 255, 0.95);
-      border-color: rgba(147, 51, 234, 0.3);
-    }
 
-    .purple-glow-btn {
-      background: linear-gradient(135deg, #a855f7 0%, #7c3aed 50%, #6366f1 100%);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 4px 20px -2px rgba(168, 85, 247, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-      color: #ffffff;
+    .palette-glow-btn, .purple-glow-btn {
+      background: var(--accent-btn-bg);
+      border: 1px solid var(--accent-glow);
+      box-shadow: 0 4px 20px -2px var(--accent-glow), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+      color: var(--accent-btn-text);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .purple-glow-btn:hover {
-      box-shadow: 0 6px 28px -2px rgba(168, 85, 247, 0.75), 0 0 16px rgba(192, 132, 252, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    .palette-glow-btn:hover, .purple-glow-btn:hover {
+      background: var(--accent-btn-hover);
+      box-shadow: 0 6px 28px -2px var(--accent-glow), 0 0 16px var(--accent-glow), inset 0 1px 1px rgba(255, 255, 255, 0.4);
       transform: translateY(-1px) scale(1.02);
     }
-    .purple-glow-btn:active {
+    .palette-glow-btn:active, .purple-glow-btn:active {
       transform: translateY(0) scale(0.98);
     }
 
@@ -190,26 +261,26 @@
     }
   </style>
 </head>
-<body class="bg-[#07080c] text-slate-100 transition-colors duration-300 h-screen w-screen flex items-center justify-center p-2 sm:p-3 md:p-4 lg:p-6 overflow-hidden">
+<body class="bg-transparent text-slate-100 transition-colors duration-300 h-screen w-screen flex items-center justify-center p-2 sm:p-3 md:p-4 lg:p-6 overflow-hidden">
 
-  <!-- 3D Three.js Ambient Orbital Background -->
-  <div id="three-container" class="fixed inset-0 pointer-events-none z-0 opacity-80"></div>
+  <!-- ───── 3D Three.js Ambient Orbital Background (Visible through all gaps) ───── -->
+  <div id="three-container" class="fixed inset-0 pointer-events-none z-0 opacity-95"></div>
 
-  <!-- ───── FLOATING DASHBOARD CANVAS (Reference Inspired) ───── -->
+  <!-- ───── FLOATING DASHBOARD CANVAS (Transparent outer frame with visible gaps) ───── -->
   <div class="dashboard-outer-canvas w-full max-w-[1480px] h-full max-h-[940px] rounded-[28px] sm:rounded-[36px] xl:rounded-[42px] flex flex-col justify-between overflow-hidden relative z-10 shadow-2xl">
     
     <!-- TOP BAR / NAVIGATION PILL -->
     <header class="relative z-20 w-full px-4 sm:px-6 py-2.5 liquid-header flex items-center justify-between shrink-0">
       <!-- Brand with Hourglass Logo -->
       <div class="flex items-center space-x-2.5">
-        <div class="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-purple-500/40 shadow-lg shadow-purple-500/20 flex items-center justify-center bg-black/70 shrink-0">
+        <div class="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-white/20 shadow-md flex items-center justify-center bg-black/60 shrink-0">
           <img src="logo.png" alt="ZenClock Logo" class="w-full h-full object-contain" />
         </div>
         <div class="flex items-baseline space-x-1.5">
-          <h1 class="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent">
+          <h1 class="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
             ZenClock
           </h1>
-          <span class="text-[10px] font-mono font-bold text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/20">
+          <span class="text-[10px] font-mono font-bold text-slate-300 bg-white/[0.08] px-1.5 py-0.2 rounded border border-white/10">
             PRO
           </span>
         </div>
@@ -217,7 +288,7 @@
 
       <!-- Segmented Timer Mode Switcher Pills -->
       <div class="hidden md:flex items-center space-x-1 p-1 rounded-2xl liquid-btn text-xs font-medium">
-        <button id="mode-countdown" onclick="switchTimerMode('countdown', 1500)" class="px-3 py-1 rounded-xl transition-all font-semibold bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-sm shadow-purple-500/25">Custom</button>
+        <button id="mode-countdown" onclick="switchTimerMode('countdown', 1500)" class="px-3 py-1 rounded-xl transition-all font-semibold bg-white/[0.14] text-white border border-white/20 shadow-sm">Custom</button>
         <button id="mode-pomodoro" onclick="switchTimerMode('pomodoro', 1500)" class="px-3 py-1 rounded-xl transition-all text-slate-400 hover:text-white">Pomodoro (25m)</button>
         <button id="mode-deep" onclick="switchTimerMode('deep_work', 3000)" class="px-3 py-1 rounded-xl transition-all text-slate-400 hover:text-white">Deep Work (50m)</button>
         <button id="mode-short" onclick="switchTimerMode('short_break', 300)" class="px-3 py-1 rounded-xl transition-all text-slate-400 hover:text-white">Short Break (5m)</button>
@@ -226,9 +297,22 @@
 
       <!-- Header Action Controls -->
       <div class="flex items-center space-x-1.5 sm:space-x-2">
+        <!-- Quick Palette Switcher Pill -->
+        <div class="relative">
+          <button id="header-palette-btn" onclick="toggleHeaderPaletteMenu()" class="flex items-center space-x-1.5 py-1.5 px-2.5 rounded-xl liquid-btn text-xs font-semibold text-slate-200 hover:text-white transition-all" title="Switch Color Palette">
+            <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+            <span id="header-palette-name" class="hidden xl:inline text-[11px]">Midnight</span>
+            <span id="header-palette-dot" class="w-2.5 h-2.5 rounded-full border border-white/30 shrink-0 bg-slate-200"></span>
+          </button>
+          <div id="header-palette-dropdown" class="absolute right-0 top-full mt-2 w-64 rounded-2xl liquid-glass p-2 shadow-2xl z-50 border border-white/10 backdrop-blur-2xl hidden">
+            <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-2 py-1">Select Palette (6 Themes)</div>
+            <div class="space-y-1" id="header-palette-list"></div>
+          </div>
+        </div>
+
         <!-- Layout Style Pills -->
         <div class="flex items-center liquid-btn rounded-xl p-0.5 text-xs">
-          <button id="style-btn-zen" onclick="setDesignStyle('zen')" class="px-2.5 py-1 rounded-lg font-semibold bg-purple-600/40 text-purple-200 border border-purple-500/30 shadow-sm transition-all text-[11px]">Zen</button>
+          <button id="style-btn-zen" onclick="setDesignStyle('zen')" class="px-2.5 py-1 rounded-lg font-semibold bg-white/[0.14] text-white border border-white/20 shadow-sm transition-all text-[11px]">Zen</button>
           <button id="style-btn-studio" onclick="setDesignStyle('studio')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all text-[11px]">Studio</button>
           <button id="style-btn-cyber" onclick="setDesignStyle('cyber')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all text-[11px]">Cyber</button>
           <button id="style-btn-spatial" onclick="setDesignStyle('spatial')" class="px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all text-[11px]">Spatial</button>
@@ -236,19 +320,19 @@
 
         <!-- Mute Audio Toggle -->
         <button id="mute-btn" onclick="toggleMute()" class="p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all" title="Toggle Mute [M]">
-          <svg id="mute-icon-unmuted" class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+          <svg id="mute-icon-unmuted" class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
           <svg id="mute-icon-muted" class="w-4 h-4 text-rose-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12 0l-6-6m0 6l6-6"></path></svg>
         </button>
 
         <!-- Preferences Modal Trigger -->
-        <button onclick="openSettingsModal()" class="p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all" title="Sound & Preferences">
+        <button onclick="openSettingsModal()" class="p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all" title="Theme & Preferences">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
         </button>
 
         <!-- Theme Toggle -->
         <button onclick="toggleTheme()" class="p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all" title="Toggle Theme">
-          <svg id="theme-icon-sun" class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-          <svg id="theme-icon-moon" class="w-4 h-4 text-purple-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          <svg id="theme-icon-sun" class="w-4 h-4 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+          <svg id="theme-icon-moon" class="w-4 h-4 text-slate-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
         </button>
 
         <!-- Fullscreen Toggle -->
@@ -256,25 +340,25 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
         </button>
 
-        <!-- Hero Purple Glow Action Button (Inspired by "Send" in Reference) -->
-        <button id="header-main-btn" onclick="toggleTimerMainAction()" class="purple-glow-btn px-4 sm:px-5 py-2 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all">
+        <!-- Hero Action Button -->
+        <button id="header-main-btn" onclick="toggleTimerMainAction()" class="palette-glow-btn px-4 sm:px-5 py-2 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all">
           <svg id="header-btn-icon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
           <span id="header-btn-text">START</span>
         </button>
       </div>
     </header>
 
-    <!-- ───── MAIN 3-COLUMN MULTI-PANEL DASHBOARD GRID ───── -->
-    <main class="relative z-10 flex-1 w-full p-3 sm:p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden min-h-0">
+    <!-- ───── MAIN 3-COLUMN MULTI-PANEL DASHBOARD GRID (Transparent gaps reveal Three.js) ───── -->
+    <main class="relative z-10 flex-1 w-full p-2.5 sm:p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden min-h-0 bg-transparent">
       
       <!-- COLUMN 1 (4 Cols): FOCUS TELEMETRY & HERO VISUAL TIMER -->
       <div class="lg:col-span-4 flex flex-col justify-between gap-3 min-h-0">
         
-        <!-- Card 1: Focus Analytics Wave (Like "Analytics Today" in reference) -->
+        <!-- Card 1: Focus Analytics Wave -->
         <div class="p-3.5 sm:p-4 rounded-3xl liquid-glass flex flex-col justify-between shrink-0">
           <div class="flex items-center justify-between pb-2 border-b border-white/[0.08]">
             <div class="flex items-center space-x-2">
-              <div class="w-7 h-7 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400">
+              <div class="w-7 h-7 rounded-xl bg-white/[0.08] border border-white/10 flex items-center justify-center text-slate-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
               </div>
               <div>
@@ -292,16 +376,16 @@
           <div class="my-2.5 h-12 w-full relative flex items-center">
             <svg class="w-full h-full overflow-visible" viewBox="0 0 280 48" preserveAspectRatio="none">
               <defs>
-                <linearGradient id="wave-grad-1" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#38bdf8" />
-                  <stop offset="50%" stop-color="#a855f7" />
-                  <stop offset="100%" stop-color="#ec4899" />
+                <linearGradient id="wave-neutral-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="50%" stop-color="#cbd5e1" />
+                  <stop offset="100%" stop-color="#64748b" />
                 </linearGradient>
               </defs>
-              <path d="M 0,38 C 40,42 70,22 110,26 C 150,30 180,14 220,20 C 250,25 270,12 280,18" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-opacity="0.35" stroke-dasharray="4 4" />
-              <path d="M 0,26 C 35,8 65,36 105,18 C 145,2 175,32 215,14 C 245,2 265,22 280,8" fill="none" stroke="url(#wave-grad-1)" stroke-width="2.8" stroke-linecap="round" />
-              <circle cx="105" cy="18" r="3" fill="#a855f7" />
-              <circle cx="215" cy="14" r="3" fill="#38bdf8" />
+              <path d="M 0,38 C 40,42 70,22 110,26 C 150,30 180,14 220,20 C 250,25 270,12 280,18" fill="none" stroke="#64748b" stroke-width="1.5" stroke-opacity="0.3" stroke-dasharray="4 4" />
+              <path d="M 0,26 C 35,8 65,36 105,18 C 145,2 175,32 215,14 C 245,2 265,22 280,8" fill="none" stroke="url(#wave-neutral-grad)" stroke-width="2.5" stroke-linecap="round" />
+              <circle cx="105" cy="18" r="3" fill="#ffffff" />
+              <circle cx="215" cy="14" r="3" fill="#94a3b8" />
             </svg>
           </div>
 
@@ -310,51 +394,51 @@
             <div class="flex items-center space-x-1.5">
               <span class="text-[11px] text-slate-400">Cycle:</span>
               <div class="flex items-center space-x-1">
-                <div id="p-dot-1" class="h-1.5 w-4 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 transition-all"></div>
+                <div id="p-dot-1" class="h-1.5 w-4 rounded-full bg-white shadow-sm shadow-white/50 transition-all"></div>
                 <div id="p-dot-2" class="h-1.5 w-2 rounded-full bg-slate-700 transition-all"></div>
                 <div id="p-dot-3" class="h-1.5 w-2 rounded-full bg-slate-700 transition-all"></div>
                 <div id="p-dot-4" class="h-1.5 w-2 rounded-full bg-slate-700 transition-all"></div>
               </div>
             </div>
-            <button onclick="advancePomodoroCycle()" class="text-[11px] font-mono font-semibold text-purple-300 hover:text-white transition-colors">
+            <button onclick="advancePomodoroCycle()" class="text-[11px] font-mono font-semibold text-slate-200 hover:text-white transition-colors">
               Session #1 • Advance
             </button>
           </div>
         </div>
 
-        <!-- Card 2: Centerpiece Visual Countdown Timer (Like 3D Sphere Card in Reference) -->
+        <!-- Card 2: Centerpiece Visual Countdown Timer -->
         <div class="flex-1 p-4 rounded-3xl liquid-glass flex flex-col justify-between items-center relative min-h-0">
           
           <!-- Status Header -->
           <div class="w-full flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
-            <span class="flex items-center space-x-1.5 text-purple-300">
-              <span class="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+            <span class="flex items-center space-x-1.5 text-slate-200">
+              <span class="w-2 h-2 rounded-full bg-slate-300 animate-ping"></span>
               <span id="timer-mode-label">TIMER // COUNTDOWN</span>
             </span>
-            <span id="timer-status-zen" class="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-semibold">
+            <span id="timer-status-zen" class="px-2 py-0.5 rounded-full bg-white/[0.08] border border-white/10 text-slate-200 font-semibold text-[10px]">
               READY
             </span>
           </div>
 
           <!-- Active Visual Layout Centerpiece -->
           <div class="flex-1 flex flex-col items-center justify-center my-2 relative">
-            <!-- 1. Zen Minimal (Breathing Violet Ring) -->
+            <!-- 1. Zen Minimal (Breathing Silver/Neutral Ring) -->
             <div id="layout-zen" class="relative flex items-center justify-center">
-              <div id="zen-glow" class="absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-purple-600/15"></div>
+              <div id="zen-glow" class="absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-white/5"></div>
               <div class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
                 <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 250 250">
                   <circle cx="125" cy="125" r="105" class="stroke-slate-800/80" stroke-width="5" fill="transparent" />
-                  <circle id="zen-arc" cx="125" cy="125" r="105" stroke="url(#zen-purple-grad)" stroke-width="7" stroke-dasharray="659.73" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" class="transition-[stroke-dashoffset] duration-200 ease-linear" />
+                  <circle id="zen-arc" cx="125" cy="125" r="105" stroke="url(#zen-neutral-grad)" stroke-width="6" stroke-dasharray="659.73" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" class="transition-[stroke-dashoffset] duration-200 ease-linear" />
                   <defs>
-                    <linearGradient id="zen-purple-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#c084fc" />
-                      <stop offset="50%" stop-color="#a855f7" />
-                      <stop offset="100%" stop-color="#6366f1" />
+                    <linearGradient id="zen-neutral-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#ffffff" />
+                      <stop offset="50%" stop-color="#cbd5e1" />
+                      <stop offset="100%" stop-color="#94a3b8" />
                     </linearGradient>
                   </defs>
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
-                  <span id="timer-digits-zen" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight tabular text-white cursor-pointer hover:text-purple-300 transition-colors drop-shadow-[0_2px_12px_rgba(168,85,247,0.4)]" title="Click to edit">25:00</span>
+                  <span id="timer-digits-zen" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight tabular text-white cursor-pointer hover:text-slate-200 transition-colors drop-shadow-[0_2px_12px_rgba(255,255,255,0.2)]" title="Click to edit">25:00</span>
                   <span class="text-[10px] font-mono tracking-widest text-slate-400 uppercase mt-1">Tap to edit</span>
                 </div>
               </div>
@@ -363,42 +447,42 @@
             <!-- 2. Studio Layout -->
             <div id="layout-studio" class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center hidden">
               <svg id="studio-svg" class="w-full h-full -rotate-90 transform" viewBox="0 0 260 260"></svg>
-              <div class="absolute inset-8 rounded-full bg-slate-950/70 border border-purple-500/20 backdrop-blur-xl flex flex-col items-center justify-center shadow-lg">
-                <span id="timer-digits-studio" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight tabular text-purple-300 cursor-pointer">25:00</span>
+              <div class="absolute inset-8 rounded-full bg-black/60 border border-white/10 backdrop-blur-xl flex flex-col items-center justify-center shadow-lg">
+                <span id="timer-digits-studio" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight tabular text-white cursor-pointer">25:00</span>
                 <span id="studio-percent" class="text-[10px] font-mono font-bold tracking-widest uppercase text-slate-400 mt-1">0% COMPLETE</span>
               </div>
             </div>
 
             <!-- 3. Cyber Layout -->
-            <div id="layout-cyber" class="w-full max-w-xs p-4 rounded-2xl bg-slate-950/80 border border-purple-500/40 shadow-[0_0_24px_rgba(168,85,247,0.25)] flex flex-col justify-between hidden">
-              <div class="flex items-center justify-between text-[10px] font-mono text-purple-400 pb-1 border-b border-purple-500/20">
+            <div id="layout-cyber" class="w-full max-w-xs p-4 rounded-2xl bg-black/70 border border-white/20 shadow-[0_0_24px_rgba(255,255,255,0.08)] flex flex-col justify-between hidden">
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-300 pb-1 border-b border-white/10">
                 <span>SYS://FOCUS_CORE</span>
                 <span id="cyber-status">STATUS: STANDBY</span>
               </div>
               <div class="text-center my-3">
-                <span id="timer-digits-cyber" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-black text-purple-200 drop-shadow-[0_0_12px_rgba(168,85,247,0.7)] cursor-pointer tabular">25:00</span>
+                <span id="timer-digits-cyber" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-black text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] cursor-pointer tabular">25:00</span>
               </div>
-              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-purple-900/60">
-                <div id="cyber-progress" class="bg-purple-500 h-full shadow-[0_0_10px_#a855f7] transition-all duration-200" style="width: 0%;"></div>
+              <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-white/10">
+                <div id="cyber-progress" class="bg-white h-full shadow-[0_0_10px_rgba(255,255,255,0.8)] transition-all duration-200" style="width: 0%;"></div>
               </div>
             </div>
 
             <!-- 4. Spatial 3D Layout -->
-            <div id="layout-spatial" class="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-purple-500/15 via-slate-950/70 to-indigo-500/15 border border-purple-500/30 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center p-4 hidden">
-              <svg class="w-5 h-5 text-purple-400 animate-spin mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2" stroke-dasharray="16" /></svg>
+            <div id="layout-spatial" class="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-black/60 border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center p-4 hidden">
+              <svg class="w-5 h-5 text-slate-300 animate-spin mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2" stroke-dasharray="16" /></svg>
               <span id="timer-digits-spatial" onclick="openCustomPicker()" class="text-4xl sm:text-5xl font-mono font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] cursor-pointer tabular">25:00</span>
-              <span class="text-[10px] font-mono uppercase tracking-widest text-purple-300/80 mt-1">Spatial Ready</span>
+              <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400 mt-1">Spatial Ready</span>
             </div>
           </div>
 
           <!-- Bottom Quick Preset Pills -->
           <div class="flex items-center space-x-1 sm:space-x-1.5 overflow-x-auto max-w-full py-1 shrink-0">
-            <button onclick="addSeconds(60)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0">+1m</button>
-            <button onclick="addSeconds(300)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0">+5m</button>
-            <button onclick="addSeconds(600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0">+10m</button>
-            <button onclick="addSeconds(900)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0">+15m</button>
-            <button onclick="addSeconds(1500)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0">+25m</button>
-            <button onclick="addSeconds(3600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0">+60m</button>
+            <button onclick="addSeconds(60)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-white hover:border-white/25 transition-all shrink-0">+1m</button>
+            <button onclick="addSeconds(300)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-white hover:border-white/25 transition-all shrink-0">+5m</button>
+            <button onclick="addSeconds(600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-white hover:border-white/25 transition-all shrink-0">+10m</button>
+            <button onclick="addSeconds(900)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-white hover:border-white/25 transition-all shrink-0">+15m</button>
+            <button onclick="addSeconds(1500)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-white hover:border-white/25 transition-all shrink-0">+25m</button>
+            <button onclick="addSeconds(3600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-white hover:border-white/25 transition-all shrink-0">+60m</button>
           </div>
         </div>
       </div>
@@ -406,11 +490,11 @@
       <!-- COLUMN 2 (4 Cols): SESSION CONFIGURATION & MOTIVATIONAL WISDOM -->
       <div class="lg:col-span-4 flex flex-col justify-between gap-3 min-h-0">
         
-        <!-- Card 3: Session Controls & Sound Chamber (Like Center Form in Reference) -->
+        <!-- Card 3: Session Controls & Sound Chamber -->
         <div class="p-4 rounded-3xl liquid-glass flex flex-col justify-between space-y-3 shrink-0">
           <div class="flex items-center justify-between pb-2 border-b border-white/[0.08]">
             <h3 class="text-xs font-bold text-white tracking-wide flex items-center space-x-1.5">
-              <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+              <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
               <span>Session Controls</span>
             </h3>
             <span class="text-[10px] font-mono text-slate-400">Audio &amp; Presets</span>
@@ -422,7 +506,7 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </button>
 
-            <button id="timer-main-action-btn" onclick="toggleTimerMainAction()" class="flex-1 py-3 px-4 rounded-2xl purple-glow-btn font-extrabold text-sm flex items-center justify-center space-x-2 transition-all active:scale-95">
+            <button id="timer-main-action-btn" onclick="toggleTimerMainAction()" class="flex-1 py-3 px-4 rounded-2xl palette-glow-btn font-extrabold text-sm flex items-center justify-center space-x-2 transition-all active:scale-95">
               <svg id="timer-action-icon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
               <span id="timer-action-text">START FOCUS</span>
             </button>
@@ -436,32 +520,32 @@
           <div class="p-3 rounded-2xl liquid-btn space-y-2">
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center space-x-1.5">
-                <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                 <span id="card-sound-name" class="font-semibold text-slate-200">Alarm 1 (Melody)</span>
               </div>
-              <button onclick="previewSoundFile(currentSound)" class="px-2 py-0.5 rounded-lg text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all">
+              <button onclick="previewSoundFile(currentSound)" class="px-2 py-0.5 rounded-lg text-[10px] font-mono bg-white/[0.08] text-slate-200 border border-white/10 hover:bg-white/[0.14] transition-all">
                 Preview
               </button>
             </div>
             <div class="flex items-center space-x-2 pt-1">
               <span id="card-volume-label" class="text-[10px] font-mono text-slate-400 w-12">Vol: 85%</span>
-              <input id="card-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+              <input id="card-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200" />
             </div>
           </div>
         </div>
 
-        <!-- Card 4: Motivational Engine & Wisdom (Like Social Friends Card in Reference) -->
+        <!-- Card 4: Motivational Engine & Wisdom -->
         <div class="flex-1 p-4 rounded-3xl liquid-glass flex flex-col justify-between min-h-0">
           <div class="flex items-center justify-between pb-2 border-b border-white/[0.08] shrink-0">
             <div class="flex items-center space-x-1.5">
-              <svg class="w-3.5 h-3.5 text-purple-400" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+              <svg class="w-3.5 h-3.5 text-slate-300" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
               <span class="text-xs font-bold text-white tracking-wide">Wisdom Feed</span>
             </div>
             <div class="flex items-center space-x-1.5">
               <span id="quote-timer-pill" class="text-[9px] font-mono text-slate-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.08]">
                 60s
               </span>
-              <button onclick="nextQuoteManual()" class="p-1 rounded-lg hover:bg-purple-500/20 text-slate-400 hover:text-purple-300 transition-colors" title="Next quote">
+              <button onclick="nextQuoteManual()" class="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors" title="Next quote">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
               </button>
             </div>
@@ -472,7 +556,7 @@
             <p id="quote-text" class="italic text-slate-200 text-xs sm:text-sm leading-relaxed">
               &ldquo;The secret of getting ahead is getting started.&rdquo;
             </p>
-            <span id="quote-author" class="text-[11px] text-purple-400 font-medium block mt-2">
+            <span id="quote-author" class="text-[11px] text-slate-400 font-medium block mt-2">
               — Mark Twain
             </span>
           </div>
@@ -480,7 +564,7 @@
           <!-- Session Progress Note -->
           <div class="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-400 shrink-0">
             <span>Next quote in auto-rotation</span>
-            <span id="quote-counter" class="font-mono text-purple-300">Quote #1/50</span>
+            <span id="quote-counter" class="font-mono text-slate-300">Quote #1/50</span>
           </div>
         </div>
       </div>
@@ -488,30 +572,30 @@
       <!-- COLUMN 3 (4 Cols): OBSERVATORY (ANALOG CLOCK) & CHRONOGRAPH -->
       <div class="lg:col-span-4 flex flex-col justify-between gap-3 min-h-0">
         
-        <!-- Card 5: Live Observatory (Analog Clock - Like Wallet in Reference) -->
+        <!-- Card 5: Live Observatory (Analog Clock) -->
         <div class="p-3.5 sm:p-4 rounded-3xl liquid-glass flex items-center justify-between min-h-0 shrink-0">
           <!-- SVG Clock Face -->
           <div class="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
             <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-lg">
-              <circle cx="100" cy="100" r="95" class="fill-black/60 stroke-purple-500/30" stroke-width="2" />
-              <circle cx="100" cy="100" r="90" class="fill-slate-950/80 stroke-white/[0.06]" stroke-width="1" />
+              <circle cx="100" cy="100" r="95" class="fill-black/60 stroke-white/15" stroke-width="2" />
+              <circle cx="100" cy="100" r="90" class="fill-black/80 stroke-white/[0.06]" stroke-width="1" />
               
               <!-- Dial Ticks -->
               <g id="analog-dial-ticks"></g>
               
               <!-- Date Window -->
-              <rect x="132" y="91" width="24" height="18" rx="3" class="fill-slate-900 border border-purple-500/40" />
-              <text id="clock-date-number" x="144" y="104" text-anchor="middle" class="text-[9px] font-bold fill-purple-400 tabular">18</text>
+              <rect x="132" y="91" width="24" height="18" rx="3" class="fill-slate-900 border border-white/20" />
+              <text id="clock-date-number" x="144" y="104" text-anchor="middle" class="text-[9px] font-bold fill-slate-200 tabular">18</text>
 
               <!-- Hands -->
               <g id="hand-hour"><line x1="100" y1="110" x2="100" y2="52" stroke="#f8fafc" stroke-width="4" stroke-linecap="round" /></g>
               <g id="hand-min"><line x1="100" y1="115" x2="100" y2="30" stroke="#cbd5e1" stroke-width="2.8" stroke-linecap="round" /></g>
               <g id="hand-sec">
-                <line x1="100" y1="120" x2="100" y2="22" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" />
-                <circle cx="100" cy="112" r="3" fill="#ec4899" />
+                <line x1="100" y1="120" x2="100" y2="22" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round" />
+                <circle cx="100" cy="112" r="3" fill="#e2e8f0" />
               </g>
-              <circle cx="100" cy="100" r="4" class="fill-purple-400" />
-              <circle cx="100" cy="100" r="1.5" fill="#ec4899" />
+              <circle cx="100" cy="100" r="4" class="fill-slate-200" />
+              <circle cx="100" cy="100" r="1.5" fill="#ffffff" />
             </svg>
           </div>
 
@@ -523,20 +607,20 @@
 
             <!-- Sweep & 12/24H Toggles -->
             <div class="flex items-center space-x-2 pt-1">
-              <button onclick="toggleSweep()" id="btn-sweep" class="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-300 hover:text-purple-300 transition-colors">Sweep</button>
-              <button onclick="toggle24H()" id="btn-24h" class="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-300 hover:text-purple-300 transition-colors">12H</button>
+              <button onclick="toggleSweep()" id="btn-sweep" class="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-300 hover:text-white transition-colors">Sweep</button>
+              <button onclick="toggle24H()" id="btn-24h" class="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-300 hover:text-white transition-colors">12H</button>
             </div>
           </div>
         </div>
 
-        <!-- Card 6: Precision Chronograph / Stopwatch (Like Programs in Reference) -->
+        <!-- Card 6: Precision Chronograph / Stopwatch -->
         <div class="flex-1 p-3.5 sm:p-4 rounded-3xl liquid-glass flex flex-col justify-between min-h-0">
           <div class="flex items-center justify-between pb-2 border-b border-white/[0.08] shrink-0">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
-              <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               <span>Chronograph</span>
             </span>
-            <button id="copy-laps-btn" onclick="copyLaps()" class="text-[11px] text-slate-400 hover:text-purple-300 flex items-center space-x-1 transition-colors">
+            <button id="copy-laps-btn" onclick="copyLaps()" class="text-[11px] text-slate-400 hover:text-white flex items-center space-x-1 transition-colors">
               <span>Copy</span>
             </button>
           </div>
@@ -544,16 +628,16 @@
           <!-- Stopwatch Display -->
           <div class="flex items-baseline justify-center my-2 shrink-0">
             <span id="sw-main" class="text-4xl sm:text-5xl font-mono font-bold tracking-tight tabular text-white">00:00</span>
-            <span id="sw-cs" class="text-xl sm:text-2xl font-mono font-semibold text-purple-400 ml-1.5 tabular">.00</span>
+            <span id="sw-cs" class="text-xl sm:text-2xl font-mono font-semibold text-slate-300 ml-1.5 tabular">.00</span>
           </div>
 
           <!-- Stopwatch Buttons -->
           <div id="sw-controls" class="flex items-center justify-center space-x-2 py-1 shrink-0">
-            <button id="sw-start-btn" onclick="startStopwatch()" class="flex-1 py-1.5 px-4 rounded-xl purple-glow-btn text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all">Start</button>
+            <button id="sw-start-btn" onclick="startStopwatch()" class="flex-1 py-1.5 px-4 rounded-xl palette-glow-btn text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all">Start</button>
             <button id="sw-lap-btn" onclick="recordStopwatchLap()" class="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-200 font-semibold text-xs hidden">Lap</button>
-            <button id="sw-pause-btn" onclick="pauseStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs hidden">Pause</button>
+            <button id="sw-pause-btn" onclick="pauseStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs hidden">Pause</button>
             <button id="sw-reset-btn" onclick="resetStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-300 font-semibold text-xs hidden">Reset</button>
-            <button id="sw-resume-btn" onclick="resumeStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl purple-glow-btn text-white font-semibold text-xs hidden">Resume</button>
+            <button id="sw-resume-btn" onclick="resumeStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl palette-glow-btn text-white font-semibold text-xs hidden">Resume</button>
           </div>
 
           <!-- Laps List -->
@@ -564,9 +648,9 @@
       </div>
     </main>
 
-    <!-- ───── BOTTOM FOOTER & TELEMETRY PILL (Reference Inspired) ───── -->
+    <!-- ───── BOTTOM FOOTER & TELEMETRY PILL ───── -->
     <footer class="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/[0.08] liquid-header flex items-center justify-between text-xs text-slate-400 shrink-0">
-      <!-- Left Telemetry Pill (Like "Trusted Us" pill in reference) -->
+      <!-- Left Telemetry Pill -->
       <div class="flex items-center space-x-2.5">
         <!-- Weather Widget -->
         <div id="weather-widget" class="hidden items-center space-x-1.5 px-3 py-1 rounded-full liquid-btn text-[11px] font-medium text-slate-200">
@@ -580,7 +664,7 @@
         <div class="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full liquid-btn text-[11px] font-medium text-slate-300">
           <span id="footer-bangla-date" class="text-emerald-400">🇧🇩 --</span>
           <span class="text-slate-500">•</span>
-          <span id="footer-hijri-date" class="text-purple-300">🌙 --</span>
+          <span id="footer-hijri-date" class="text-slate-200">🌙 --</span>
         </div>
       </div>
 
@@ -591,14 +675,14 @@
         <span class="hidden md:inline">[ESC] Close / Fullscreen</span>
         <span class="hidden md:inline">•</span>
         <span class="hidden md:inline">[M] Mute</span>
-        <span>Alarm: <strong id="footer-sound-name" class="text-purple-300 font-semibold">Alarm 1 (Melody)</strong></span>
+        <span>Alarm: <strong id="footer-sound-name" class="text-slate-200 font-semibold">Alarm 1 (Melody)</strong></span>
       </div>
     </footer>
   </div>
 
   <!-- ───── CUSTOM TIME PICKER MODAL ───── -->
   <div id="modal-custom-picker" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md hidden">
-    <div class="w-full max-w-sm rounded-3xl bg-[#0d0f18] border border-purple-500/30 p-6 shadow-2xl backdrop-blur-2xl">
+    <div class="w-full max-w-sm rounded-3xl bg-[#0d0f18] border border-white/20 p-6 shadow-2xl backdrop-blur-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-white/[0.08]">
         <h3 class="font-bold text-base text-white">Set Custom Duration</h3>
         <button onclick="closeCustomPicker()" class="p-1 rounded-full text-slate-400 hover:text-white">✕</button>
@@ -632,34 +716,48 @@
 
       <div class="flex items-center space-x-2 pt-2 border-t border-white/[0.08]">
         <button onclick="closeCustomPicker()" class="flex-1 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white">Cancel</button>
-        <button onclick="applyCustomPicker()" class="flex-1 py-2.5 rounded-xl text-xs font-semibold purple-glow-btn text-white shadow-md">Apply Duration</button>
+        <button onclick="applyCustomPicker()" class="flex-1 py-2.5 rounded-xl text-xs font-semibold palette-glow-btn text-white shadow-md">Apply Duration</button>
       </div>
     </div>
   </div>
 
-  <!-- ───── SOUNDS & PREFERENCES MODAL ───── -->
+  <!-- ───── SOUNDS & PREFERENCES MODAL (With Multi-Palette Switcher) ───── -->
   <div id="modal-settings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md hidden">
-    <div class="w-full max-w-md rounded-3xl bg-[#0d0f18] border border-purple-500/30 p-6 shadow-2xl backdrop-blur-2xl flex flex-col max-h-[85vh]">
+    <div class="w-full max-w-lg rounded-3xl bg-[#0d0f18] border border-white/20 p-6 shadow-2xl backdrop-blur-2xl flex flex-col max-h-[88vh]">
       <div class="flex items-center justify-between pb-3 border-b border-white/[0.08] shrink-0">
-        <h3 class="font-bold text-base text-white">Sound &amp; Preferences</h3>
+        <h3 class="font-bold text-base text-white">Theme &amp; Preferences</h3>
         <button onclick="closeSettingsModal()" class="p-1 rounded-full text-slate-400 hover:text-white">✕</button>
       </div>
 
-      <div class="flex-1 overflow-y-auto py-4 space-y-4">
-        <!-- Volume Slider -->
+      <div class="flex-1 overflow-y-auto py-4 space-y-5">
+        <!-- Section 1: 6 Coordinated Color Palettes -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+            <span>Color Palette (6 Themes)</span>
+            <span class="text-[10px] text-slate-400 font-mono">Neutral Foundations</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2" id="settings-palette-grid"></div>
+        </div>
+
+        <!-- Section 2: Volume Slider -->
         <div class="p-3.5 rounded-2xl liquid-btn space-y-2">
           <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
             <span id="settings-volume-label">Volume: 85%</span>
           </div>
-          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200" />
         </div>
 
-        <!-- Sounds List -->
-        <div class="space-y-1.5" id="settings-sound-list"></div>
+        <!-- Section 3: Sounds List -->
+        <div class="space-y-1.5">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+            Alarm Sounds (12 Tones)
+          </span>
+          <div class="space-y-1.5" id="settings-sound-list"></div>
+        </div>
       </div>
 
       <div class="pt-3 border-t border-white/[0.08] flex justify-end shrink-0">
-        <button onclick="closeSettingsModal()" class="py-2 px-5 rounded-xl purple-glow-btn text-white font-semibold text-xs transition-all">Done</button>
+        <button onclick="closeSettingsModal()" class="py-2 px-5 rounded-xl palette-glow-btn text-white font-semibold text-xs transition-all">Done</button>
       </div>
     </div>
   </div>
@@ -667,7 +765,7 @@
   <!-- ───── ALARM COMPLETION ALERT OVERLAY ───── -->
   <div id="alarm-overlay" class="fixed inset-0 z-50 pointer-events-none alarm-active opacity-90 hidden"></div>
   <div id="alarm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
-    <div class="relative w-full max-w-md p-8 rounded-3xl bg-slate-950/95 border-2 border-red-500 text-center text-white shadow-[0_0_80px_rgba(239,68,68,0.8)] backdrop-blur-2xl">
+    <div class="relative w-full max-w-md p-8 rounded-3xl bg-black/95 border-2 border-red-500 text-center text-white shadow-[0_0_80px_rgba(239,68,68,0.8)] backdrop-blur-2xl">
       <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center animate-pulse">
         <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
       </div>
@@ -680,6 +778,156 @@
 
   <!-- CLIENT-SIDE SCRIPT LOGIC (100% STANDALONE COMPLIANT) -->
   <script>
+    // ═════════════════════════════════════════════════════════════════
+    // 6 Coordinated Color Palettes Specification
+    // ═════════════════════════════════════════════════════════════════
+    const PALETTES = {
+      midnight: {
+        id: 'midnight', name: 'Midnight', subtitle: 'Black & Graphite',
+        swatches: { bg: '#07080a', card: '#111317', border: '#272a30', accent: '#f1f5f9' },
+        three: {
+          particles: [0xffffff, 0xe2e8f0, 0x94a3b8],
+          rings: [0xe2e8f0, 0x94a3b8, 0x64748b],
+          geo: { ico: 0xd4d4d8, torus: 0xa1a1aa, sphere: 0xf4f4f5 },
+          ambient: 0x18181b, ambientInt: 1.2,
+          light1: { color: 0xffffff, int: 2.2, x: 12, y: 10, z: 12 },
+          light2: { color: 0x94a3b8, int: 1.8, x: -12, y: -10, z: 10 }
+        }
+      },
+      silver: {
+        id: 'silver', name: 'Silver', subtitle: 'White & Cool Grey',
+        swatches: { bg: '#0c0e12', card: '#181c24', border: '#334155', accent: '#e2e8f0' },
+        three: {
+          particles: [0xffffff, 0xcbd5e1, 0x94a3b8],
+          rings: [0xf1f5f9, 0xcbd5e1, 0x94a3b8],
+          geo: { ico: 0xf8fafc, torus: 0xcbd5e1, sphere: 0xe2e8f0 },
+          ambient: 0x1e293b, ambientInt: 1.4,
+          light1: { color: 0xf8fafc, int: 2.4, x: 14, y: 10, z: 12 },
+          light2: { color: 0x94a3b8, int: 1.8, x: -14, y: -10, z: 10 }
+        }
+      },
+      carbon: {
+        id: 'carbon', name: 'Carbon', subtitle: 'Charcoal & Silver',
+        swatches: { bg: '#09090b', card: '#18181b', border: '#3f3f46', accent: '#d4d4d8' },
+        three: {
+          particles: [0xf4f4f5, 0xd4d4d8, 0xa1a1aa],
+          rings: [0xd4d4d8, 0xa1a1aa, 0x71717a],
+          geo: { ico: 0xe4e4e7, torus: 0xa1a1aa, sphere: 0xd4d4d8 },
+          ambient: 0x18181b, ambientInt: 1.2,
+          light1: { color: 0xf4f4f5, int: 2.2, x: 12, y: 12, z: 10 },
+          light2: { color: 0x71717a, int: 1.6, x: -12, y: -12, z: 8 }
+        }
+      },
+      'warm-sand': {
+        id: 'warm-sand', name: 'Warm Sand', subtitle: 'Beige & Cream',
+        swatches: { bg: '#0e0d0b', card: '#1c1916', border: '#443a32', accent: '#e7dfd5' },
+        three: {
+          particles: [0xfdfbf7, 0xe7dfd5, 0xd6c7b2],
+          rings: [0xe7dfd5, 0xd6c7b2, 0xa89987],
+          geo: { ico: 0xf5ede3, torus: 0xd6c7b2, sphere: 0xe7dfd5 },
+          ambient: 0x241e18, ambientInt: 1.3,
+          light1: { color: 0xfdfbf7, int: 2.3, x: 12, y: 10, z: 12 },
+          light2: { color: 0xcbb7a2, int: 1.7, x: -12, y: -10, z: 10 }
+        }
+      },
+      sage: {
+        id: 'sage', name: 'Sage', subtitle: 'Muted Grey & Soft Green',
+        swatches: { bg: '#0a0e0c', card: '#151c18', border: '#2d3b32', accent: '#a3b899' },
+        three: {
+          particles: [0xf3f7f4, 0xc9d9cb, 0xa3b899],
+          rings: [0xb8ccad, 0x8ea384, 0x5a7052],
+          geo: { ico: 0xc9d9cb, torus: 0x9fb595, sphere: 0xb8ccad },
+          ambient: 0x152119, ambientInt: 1.3,
+          light1: { color: 0xf3f7f4, int: 2.2, x: 12, y: 10, z: 12 },
+          light2: { color: 0x8ea384, int: 1.7, x: -12, y: -10, z: 10 }
+        }
+      },
+      arctic: {
+        id: 'arctic', name: 'Arctic', subtitle: 'Frost White & Steel Grey',
+        swatches: { bg: '#070b10', card: '#121822', border: '#27354a', accent: '#bae6fd' },
+        three: {
+          particles: [0xffffff, 0xe0f2fe, 0xbae6fd],
+          rings: [0xe0f2fe, 0x93c5fd, 0x64748b],
+          geo: { ico: 0xf0f9ff, torus: 0x93c5fd, sphere: 0xbae6fd },
+          ambient: 0x0f172a, ambientInt: 1.3,
+          light1: { color: 0xffffff, int: 2.3, x: 12, y: 10, z: 12 },
+          light2: { color: 0x7dd3fc, int: 1.8, x: -12, y: -10, z: 10 }
+        }
+      }
+    };
+
+    let currentPalette = localStorage.getItem('zenclock_palette') || 'midnight';
+    if (!PALETTES[currentPalette]) currentPalette = 'midnight';
+
+    function applyPalette(id) {
+      if (!PALETTES[id]) return;
+      currentPalette = id;
+      document.documentElement.setAttribute('data-palette', id);
+      try { localStorage.setItem('zenclock_palette', id); } catch(e) {}
+
+      const p = PALETTES[id];
+      const btnText = document.getElementById('header-palette-name');
+      if (btnText) btnText.textContent = p.name;
+      const btnDot = document.getElementById('header-palette-dot');
+      if (btnDot) btnDot.style.backgroundColor = p.swatches.accent;
+
+      renderSettingsPalettes();
+      renderHeaderPalettes();
+      if (window.updateThreePalette) {
+        window.updateThreePalette(id);
+      }
+    }
+
+    function toggleHeaderPaletteMenu() {
+      const drop = document.getElementById('header-palette-dropdown');
+      if (drop) {
+        drop.classList.toggle('hidden');
+      }
+    }
+
+    function renderHeaderPalettes() {
+      const list = document.getElementById('header-palette-list');
+      if (!list) return;
+      list.innerHTML = Object.values(PALETTES).map(p => {
+        const isSel = p.id === currentPalette;
+        return `
+          <button onclick="applyPalette('${p.id}'); toggleHeaderPaletteMenu();" class="w-full flex items-center justify-between p-2 rounded-xl text-left transition-all text-xs ${isSel ? 'bg-white/[0.14] text-white font-bold' : 'text-slate-300 hover:bg-white/[0.06]'}">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full border border-white/30 shrink-0" style="background-color: ${p.swatches.accent}"></span>
+              <div>
+                <div class="font-semibold text-xs text-white">${p.name}</div>
+                <div class="text-[9px] text-slate-400">${p.subtitle}</div>
+              </div>
+            </div>
+            ${isSel ? '<span class="text-white font-bold">✓</span>' : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderSettingsPalettes() {
+      const grid = document.getElementById('settings-palette-grid');
+      if (!grid) return;
+      grid.innerHTML = Object.values(PALETTES).map(p => {
+        const isSel = p.id === currentPalette;
+        return `
+          <button onclick="applyPalette('${p.id}')" class="p-3 rounded-2xl text-left transition-all border flex flex-col justify-between space-y-2 ${isSel ? 'bg-white/[0.14] border-white/40 shadow-sm' : 'liquid-btn border-white/[0.06] hover:bg-white/[0.06]'}">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-bold text-white">${p.name}</span>
+              ${isSel ? '<span class="text-white font-bold">✓</span>' : ''}
+            </div>
+            <span class="text-[10px] text-slate-400 line-clamp-1">${p.subtitle}</span>
+            <div class="flex items-center space-x-1.5 pt-0.5">
+              <span class="w-3.5 h-3.5 rounded-full border border-white/20" style="background-color: ${p.swatches.bg}"></span>
+              <span class="w-3.5 h-3.5 rounded-full border border-white/20" style="background-color: ${p.swatches.card}"></span>
+              <span class="w-3.5 h-3.5 rounded-full border border-white/20" style="background-color: ${p.swatches.border}"></span>
+              <span class="w-3.5 h-3.5 rounded-full border border-white/20" style="background-color: ${p.swatches.accent}"></span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
     // 50 Motivational Quotes
     const MOTIVATIONAL_QUOTES = [
       { text: "Do not wait; the time will never be 'just right'. Start where you stand.", author: "Napoleon Hill" },
@@ -736,17 +984,20 @@
 
     let currentQuoteIndex = 0;
     function updateQuoteUI() {
-      const q = MOTIVATIONAL_QUOTES[currentQuoteIndex];
-      const wrap = document.getElementById('quote-wrapper');
-      if (wrap) wrap.style.opacity = '0';
+      const q = MOTIVATIONAL_QUOTES[currentQuoteIndex] || MOTIVATIONAL_QUOTES[0];
+      const textElem = document.getElementById('quote-text');
+      const authorElem = document.getElementById('quote-author');
+      const counterElem = document.getElementById('quote-counter');
+      const wrapper = document.getElementById('quote-wrapper');
+      if (wrapper) wrapper.style.opacity = '0';
       setTimeout(() => {
-        document.getElementById('quote-text').textContent = `\u201c${q.text}\u201d`;
-        document.getElementById('quote-author').textContent = `— ${q.author}`;
-        const c = document.getElementById('quote-counter');
-        if (c) c.textContent = `Quote #${currentQuoteIndex + 1}/50`;
-        if (wrap) wrap.style.opacity = '1';
-      }, 300);
+        if (textElem) textElem.innerHTML = `&ldquo;${q.text}&rdquo;`;
+        if (authorElem) authorElem.textContent = `— ${q.author}`;
+        if (counterElem) counterElem.textContent = `Quote #${currentQuoteIndex + 1}/50`;
+        if (wrapper) wrapper.style.opacity = '1';
+      }, 200);
     }
+
     function nextQuoteManual() {
       currentQuoteIndex = (currentQuoteIndex + 1) % MOTIVATIONAL_QUOTES.length;
       updateQuoteUI();
@@ -949,84 +1200,92 @@
 
     function updateTimerUI() {
       const formatted = formatTime(timerRemaining);
-      document.getElementById('timer-digits-zen').textContent = formatted;
-      document.getElementById('timer-digits-studio').textContent = formatted;
-      document.getElementById('timer-digits-cyber').textContent = formatted;
-      document.getElementById('timer-digits-spatial').textContent = formatted;
+      const tZen = document.getElementById('timer-digits-zen');
+      const tStudio = document.getElementById('timer-digits-studio');
+      const tCyber = document.getElementById('timer-digits-cyber');
+      const tSpatial = document.getElementById('timer-digits-spatial');
+      if (tZen) tZen.textContent = formatted;
+      if (tStudio) tStudio.textContent = formatted;
+      if (tCyber) tCyber.textContent = formatted;
+      if (tSpatial) tSpatial.textContent = formatted;
 
       const progress = timerDuration > 0 ? (timerDuration - timerRemaining) / timerDuration : 0;
       const arc = document.getElementById('zen-arc');
       if (arc) {
-        const circum = 659.73;
-        arc.style.strokeDashoffset = circum - (1 - progress) * circum;
+        const total = 659.73;
+        arc.style.strokeDashoffset = (total - total * progress).toString();
       }
-      const cyberBar = document.getElementById('cyber-progress');
-      if (cyberBar) cyberBar.style.width = `${progress * 100}%`;
-      const studioPct = document.getElementById('studio-percent');
-      if (studioPct) studioPct.textContent = `${Math.round(progress * 100)}% COMPLETE`;
+      const sPercent = document.getElementById('studio-percent');
+      if (sPercent) sPercent.textContent = `${Math.round(progress * 100)}% COMPLETE`;
 
-      if (isTimerRunning && !isTimerPaused) {
-        document.title = `(${formatted}) ZenClock`;
+      const cProg = document.getElementById('cyber-progress');
+      if (cProg) cProg.style.width = `${progress * 100}%`;
+
+      const mainBtnText = document.getElementById('timer-action-text');
+      const headerBtnText = document.getElementById('header-btn-text');
+      const label = !isTimerRunning && !isTimerPaused ? 'START FOCUS' : isTimerRunning ? 'PAUSE' : 'RESUME';
+      if (mainBtnText) mainBtnText.textContent = label;
+      if (headerBtnText) headerBtnText.textContent = !isTimerRunning && !isTimerPaused ? 'START' : isTimerRunning ? 'PAUSE' : 'RESUME';
+
+      const statusZen = document.getElementById('timer-status-zen');
+      if (statusZen) {
+        statusZen.textContent = isTimerRunning ? 'FLOW ACTIVE' : isTimerPaused ? 'PAUSED' : 'READY';
       }
     }
 
+    function toggleTimerMainAction() {
+      if (!isTimerRunning && !isTimerPaused) startTimer();
+      else if (isTimerRunning) pauseTimer();
+      else if (isTimerPaused) resumeTimer();
+    }
+
     function startTimer() {
-      getAudioCtx();
       if (timerRemaining <= 0) {
         timerRemaining = timerDuration;
-        timerTargetEnd = Date.now() + timerDuration * 1000;
-      } else {
-        timerTargetEnd = Date.now() + timerRemaining * 1000;
       }
+      timerTargetEnd = Date.now() + timerRemaining * 1000;
       isTimerRunning = true;
       isTimerPaused = false;
-
-      document.getElementById('timer-action-text').textContent = 'PAUSE';
-      document.getElementById('header-btn-text').textContent = 'PAUSE';
-      document.getElementById('timer-status-zen').textContent = 'FLOW ACTIVE';
-      document.getElementById('zen-glow').className = 'absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-purple-600/30 scale-105';
 
       if (timerTickInterval) clearInterval(timerTickInterval);
       timerTickInterval = setInterval(() => {
         if (!timerTargetEnd) return;
-        const diffMs = timerTargetEnd - Date.now();
-        if (diffMs <= 0) {
-          timerRemaining = 0;
-          pauseTimer(true);
+        const left = Math.max(0, Math.ceil((timerTargetEnd - Date.now()) / 1000));
+        timerRemaining = left;
+        updateTimerUI();
+
+        if (left <= 0) {
+          clearInterval(timerTickInterval);
+          isTimerRunning = false;
+          isTimerPaused = false;
+          timerTargetEnd = null;
           triggerAlarm();
-        } else {
-          timerRemaining = Math.ceil(diffMs / 1000);
-          updateTimerUI();
         }
-      }, 100);
+      }, 250);
+      updateTimerUI();
     }
 
-    function pauseTimer(ended = false) {
-      if (timerTargetEnd && !ended) {
+    function pauseTimer() {
+      if (timerTargetEnd) {
         timerRemaining = Math.max(0, Math.ceil((timerTargetEnd - Date.now()) / 1000));
       }
       timerTargetEnd = null;
       isTimerRunning = false;
-      isTimerPaused = !ended;
-      if (timerTickInterval) { clearInterval(timerTickInterval); timerTickInterval = null; }
-
-      const btnLabel = isTimerPaused ? 'RESUME' : 'START FOCUS';
-      document.getElementById('timer-action-text').textContent = btnLabel;
-      document.getElementById('header-btn-text').textContent = isTimerPaused ? 'RESUME' : 'START';
-      document.getElementById('timer-status-zen').textContent = isTimerPaused ? 'PAUSED' : 'READY';
-      document.getElementById('zen-glow').className = 'absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-purple-600/10 scale-95';
+      isTimerPaused = true;
+      if (timerTickInterval) clearInterval(timerTickInterval);
       updateTimerUI();
     }
 
-    function toggleTimerMainAction() {
-      if (!isTimerRunning) startTimer();
-      else pauseTimer();
+    function resumeTimer() {
+      startTimer();
     }
 
     function resetTimer() {
-      pauseTimer(true);
+      timerTargetEnd = null;
+      isTimerRunning = false;
+      isTimerPaused = false;
+      if (timerTickInterval) clearInterval(timerTickInterval);
       timerRemaining = timerDuration;
-      document.title = 'ZenClock — Modern Focus Suite';
       updateTimerUI();
     }
 
@@ -1036,112 +1295,65 @@
         timerRemaining += sec;
         timerDuration += sec;
       } else {
+        timerRemaining += sec;
         timerDuration += sec;
-        timerRemaining = timerDuration;
       }
       updateTimerUI();
     }
 
-    function switchTimerMode(mode, dur) {
+    function switchTimerMode(mode, sec) {
       currentMode = mode;
-      timerDuration = dur;
-      timerRemaining = dur;
-      pauseTimer(true);
+      timerDuration = sec;
+      timerRemaining = sec;
+      isTimerRunning = false;
+      isTimerPaused = false;
+      if (timerTickInterval) clearInterval(timerTickInterval);
 
-      const modes = ['countdown', 'pomodoro', 'deep', 'short', 'long'];
-      modes.forEach(m => {
+      ['countdown', 'pomodoro', 'deep', 'short', 'long'].forEach(m => {
         const btn = document.getElementById(`mode-${m}`);
-        if (!btn) return;
-        if (m === mode || (mode === 'deep_work' && m === 'deep') || (mode === 'short_break' && m === 'short') || (mode === 'long_break' && m === 'long')) {
-          btn.className = 'px-3 py-1 rounded-xl transition-all font-semibold bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-sm shadow-purple-500/25';
-        } else {
-          btn.className = 'px-3 py-1 rounded-xl transition-all text-slate-400 hover:text-white';
+        if (btn) {
+          if ((m === 'countdown' && mode === 'countdown') ||
+              (m === 'pomodoro' && mode === 'pomodoro') ||
+              (m === 'deep' && mode === 'deep_work') ||
+              (m === 'short' && mode === 'short_break') ||
+              (m === 'long' && mode === 'long_break')) {
+            btn.className = 'px-3 py-1 rounded-xl transition-all font-semibold bg-white/[0.14] text-white border border-white/20 shadow-sm';
+          } else {
+            btn.className = 'px-3 py-1 rounded-xl transition-all text-slate-400 hover:text-white';
+          }
         }
       });
 
-      document.getElementById('timer-mode-label').textContent = `TIMER // ${mode.toUpperCase().replace('_', ' ')}`;
+      const modeLabel = document.getElementById('timer-mode-label');
+      if (modeLabel) modeLabel.textContent = `TIMER // ${mode.toUpperCase()}`;
       updateTimerUI();
     }
 
-    function advancePomodoroCycle() {
-      pomodoroSession = pomodoroSession >= 4 ? 1 : pomodoroSession + 1;
-      for (let i = 1; i <= 4; i++) {
-        const dot = document.getElementById(`p-dot-${i}`);
-        if (i === pomodoroSession) dot.className = 'h-1.5 w-4 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50 transition-all';
-        else if (i < pomodoroSession) dot.className = 'h-1.5 w-2 rounded-full bg-emerald-500 transition-all';
-        else dot.className = 'h-1.5 w-2 rounded-full bg-slate-700 transition-all';
-      }
-    }
-
-    // Custom Picker Modal
-    function openCustomPicker() {
-      const h = Math.floor(timerDuration / 3600);
-      const m = Math.floor((timerDuration % 3600) / 60);
-      const s = timerDuration % 60;
-      document.getElementById('input-custom-hrs').value = h;
-      document.getElementById('input-custom-mins').value = m;
-      document.getElementById('input-custom-secs').value = s;
-      document.getElementById('modal-custom-picker').classList.remove('hidden');
-    }
-    function closeCustomPicker() {
-      document.getElementById('modal-custom-picker').classList.add('hidden');
-    }
-    function stepCustomHours(v) {
-      const inp = document.getElementById('input-custom-hrs');
-      inp.value = Math.max(0, Math.min(23, (parseInt(inp.value) || 0) + v));
-    }
-    function stepCustomMins(v) {
-      const inp = document.getElementById('input-custom-mins');
-      let val = (parseInt(inp.value) || 0) + v;
-      if (val > 59) val = 0;
-      if (val < 0) val = 59;
-      inp.value = val;
-    }
-    function stepCustomSecs(v) {
-      const inp = document.getElementById('input-custom-secs');
-      let val = (parseInt(inp.value) || 0) + v;
-      if (val > 59) val = 0;
-      if (val < 0) val = 59;
-      inp.value = val;
-    }
-    function applyCustomPicker() {
-      const h = parseInt(document.getElementById('input-custom-hrs').value) || 0;
-      const m = parseInt(document.getElementById('input-custom-mins').value) || 0;
-      const s = parseInt(document.getElementById('input-custom-secs').value) || 0;
-      const total = h * 3600 + m * 60 + s;
-      if (total > 0) {
-        timerDuration = total;
-        timerRemaining = total;
-        pauseTimer(true);
-        updateTimerUI();
-      }
-      closeCustomPicker();
-    }
-
-    // Design Style Selector
     function setDesignStyle(style) {
       currentDesignStyle = style;
       ['zen', 'studio', 'cyber', 'spatial'].forEach(s => {
         const el = document.getElementById(`layout-${s}`);
         const btn = document.getElementById(`style-btn-${s}`);
-        if (s === style) {
-          el.classList.remove('hidden');
-          btn.className = 'px-2.5 py-1 rounded-lg font-semibold bg-purple-600/40 text-purple-200 border border-purple-500/30 shadow-sm transition-all text-[11px]';
-        } else {
-          el.classList.add('hidden');
-          btn.className = 'px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all text-[11px]';
+        if (el) {
+          if (s === style) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+        if (btn) {
+          if (s === style) {
+            btn.className = 'px-2.5 py-1 rounded-lg font-semibold bg-white/[0.14] text-white border border-white/20 shadow-sm transition-all text-[11px]';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition-all text-[11px]';
+          }
         }
       });
-      if (style === 'studio') renderStudioDial();
+      if (style === 'studio') drawStudioDial();
     }
 
-    function renderStudioDial() {
+    function drawStudioDial() {
       const svg = document.getElementById('studio-svg');
-      let lines = '';
-      const progress = timerDuration > 0 ? (timerDuration - timerRemaining) / timerDuration : 0;
+      if (!svg || svg.children.length > 0) return;
       for (let i = 0; i < 48; i++) {
         const rad = (i / 48) * 360 * (Math.PI / 180);
-        const isActive = i <= Math.floor(progress * 48);
         const isMajor = i % 4 === 0;
         const r1 = isMajor ? 102 : 108;
         const r2 = 118;
@@ -1149,218 +1361,152 @@
         const y1 = 130 + r1 * Math.sin(rad);
         const x2 = 130 + r2 * Math.cos(rad);
         const y2 = 130 + r2 * Math.sin(rad);
-        const strokeColor = isActive ? '#a855f7' : 'rgba(148, 163, 184, 0.25)';
-        lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${strokeColor}" stroke-width="${isMajor ? 3 : 1.5}" stroke-linecap="round" />`;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('stroke', isMajor ? '#ffffff' : 'rgba(148, 163, 184, 0.25)');
+        line.setAttribute('stroke-width', isMajor ? '3' : '1.5');
+        line.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(line);
       }
-      svg.innerHTML = lines;
     }
 
-    // Alarm Alert
+    function advancePomodoroCycle() {
+      pomodoroSession = (pomodoroSession % 4) + 1;
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`p-dot-${i}`);
+        if (dot) {
+          if (i === pomodoroSession) dot.className = 'h-1.5 w-4 rounded-full bg-white shadow-sm shadow-white/50 transition-all';
+          else if (i < pomodoroSession) dot.className = 'h-1.5 w-2 rounded-full bg-emerald-400 transition-all';
+          else dot.className = 'h-1.5 w-2 rounded-full bg-slate-700 transition-all';
+        }
+      }
+    }
+
     function triggerAlarm() {
-      document.body.classList.add('alarm-active');
-      document.getElementById('alarm-overlay').classList.remove('hidden');
-      document.getElementById('alarm-modal').classList.remove('hidden');
-      document.title = "⏰ TIME'S UP! — ZenClock";
+      const overlay = document.getElementById('alarm-overlay');
+      const modal = document.getElementById('alarm-modal');
+      if (overlay) overlay.classList.remove('hidden');
+      if (modal) modal.classList.remove('hidden');
+
+      const msg = currentMode === 'pomodoro' 
+        ? `Pomodoro #${pomodoroSession} finished! Time for a break.` 
+        : 'Focus duration complete! Excellent work.';
+      const txt = document.getElementById('alarm-alert-text');
+      if (txt) txt.textContent = msg;
+
       startAlarmLoop(currentSound);
     }
+
     function dismissAlarm() {
-      document.body.classList.remove('alarm-active');
-      document.getElementById('alarm-overlay').classList.add('hidden');
-      document.getElementById('alarm-modal').classList.add('hidden');
-      document.title = 'ZenClock — Modern Focus Suite';
       stopAlarmLoop();
-    }
-
-    // Stopwatch Logic
-    let swStart = null;
-    let swAccum = 0;
-    let swRunning = false;
-    let swInterval = null;
-    let laps = [];
-
-    function formatStopwatch(ms) {
-      const cs = Math.floor(ms / 10) % 100;
-      const totalSec = Math.floor(ms / 1000);
-      const s = totalSec % 60;
-      const m = Math.floor((totalSec % 3600) / 60);
-      const h = Math.floor(totalSec / 3600);
-      const main = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
-      return { main, cs: pad(cs) };
-    }
-
-    function updateStopwatchUI() {
-      const current = swStart ? swAccum + (Date.now() - swStart) : swAccum;
-      const f = formatStopwatch(current);
-      document.getElementById('sw-main').textContent = f.main;
-      document.getElementById('sw-cs').textContent = `.${f.cs}`;
-    }
-
-    function startStopwatch() {
-      swStart = Date.now();
-      swRunning = true;
-      document.getElementById('sw-start-btn').classList.add('hidden');
-      document.getElementById('sw-lap-btn').classList.remove('hidden');
-      document.getElementById('sw-pause-btn').classList.remove('hidden');
-      document.getElementById('sw-reset-btn').classList.add('hidden');
-      document.getElementById('sw-resume-btn').classList.add('hidden');
-      swInterval = setInterval(updateStopwatchUI, 25);
-    }
-
-    function pauseStopwatch() {
-      if (swStart) swAccum += Date.now() - swStart;
-      swStart = null;
-      swRunning = false;
-      if (swInterval) clearInterval(swInterval);
-      document.getElementById('sw-lap-btn').classList.add('hidden');
-      document.getElementById('sw-pause-btn').classList.add('hidden');
-      document.getElementById('sw-reset-btn').classList.remove('hidden');
-      document.getElementById('sw-resume-btn').classList.remove('hidden');
-      updateStopwatchUI();
-    }
-
-    function resumeStopwatch() {
-      startStopwatch();
-    }
-
-    function resetStopwatch() {
-      pauseStopwatch();
-      swAccum = 0;
-      laps = [];
-      document.getElementById('sw-reset-btn').classList.add('hidden');
-      document.getElementById('sw-resume-btn').classList.add('hidden');
-      document.getElementById('sw-start-btn').classList.remove('hidden');
-      document.getElementById('sw-laps-list').innerHTML = '<div class="h-full flex items-center justify-center text-slate-500 text-[11px] italic">Press "Lap" while running to record splits</div>';
-      updateStopwatchUI();
-    }
-
-    function recordStopwatchLap() {
-      if (!swRunning) return;
-      const total = swStart ? swAccum + (Date.now() - swStart) : swAccum;
-      const lastTotal = laps.length > 0 ? laps[0].total : 0;
-      const split = total - lastTotal;
-      laps.unshift({ num: laps.length + 1, split, total });
-
-      const container = document.getElementById('sw-laps-list');
-      container.innerHTML = laps.map(l => {
-        const s = formatStopwatch(l.split);
-        const t = formatStopwatch(l.total);
-        return `<div class="flex items-center justify-between py-1 px-1"><span class="text-slate-400 w-10">#${l.num}</span><span class="tabular text-slate-200">+${s.main}.${s.cs}</span><span class="text-slate-500 tabular text-[11px]">${t.main}.${t.cs}</span></div>`;
-      }).join('');
-    }
-
-    function copyLaps() {
-      if (laps.length === 0) return;
-      const txt = laps.map(l => {
-        const s = formatStopwatch(l.split);
-        const t = formatStopwatch(l.total);
-        return `Lap ${l.num}: +${s.main}.${s.cs} (Total: ${t.main}.${t.cs})`;
-      }).join('\n');
-      navigator.clipboard.writeText(txt);
-      const btn = document.getElementById('copy-laps-btn');
-      btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = 'Copy', 1500);
-    }
-
-    // Analog Clock
-    let isSmoothSweep = true;
-    let is24H = false;
-
-    function renderAnalogDialTicks() {
-      const g = document.getElementById('analog-dial-ticks');
-      if (!g) return;
-      let ticks = '';
-      for (let i = 0; i < 12; i++) {
-        const rad = (i * 30 * Math.PI) / 180;
-        const x1 = 100 + 76 * Math.sin(rad);
-        const y1 = 100 - 76 * Math.cos(rad);
-        const x2 = 100 + 86 * Math.sin(rad);
-        const y2 = 100 - 86 * Math.cos(rad);
-        ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${i % 3 === 0 ? '#c084fc' : '#475569'}" stroke-width="${i % 3 === 0 ? 2.5 : 1.2}" stroke-linecap="round" />`;
-      }
-      g.innerHTML = ticks;
-    }
-
-    function tickLiveClock() {
-      const d = new Date();
-      const ms = d.getMilliseconds();
-      const s = d.getSeconds();
-      const m = d.getMinutes();
-      const h = d.getHours();
-
-      const secVal = isSmoothSweep ? s + ms / 1000 : s;
-      const minVal = m + secVal / 60;
-      const hrVal = (h % 12) + minVal / 60;
-
-      document.getElementById('hand-hour').setAttribute('transform', `rotate(${hrVal * 30}, 100, 100)`);
-      document.getElementById('hand-min').setAttribute('transform', `rotate(${minVal * 6}, 100, 100)`);
-      document.getElementById('hand-sec').setAttribute('transform', `rotate(${secVal * 6}, 100, 100)`);
-
-      document.getElementById('clock-date-number').textContent = d.getDate();
-      const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-      document.getElementById('clock-date-display').textContent = dateStr;
-
-      // Cultural Dates
-      const bDate = getBanglaDate(d);
-      const hDate = getHijriDate(d);
-      document.getElementById('footer-bangla-date').textContent = `🇧🇩 ${bDate}`;
-      document.getElementById('footer-hijri-date').textContent = `🌙 ${hDate}`;
-
-      const time12 = `${pad(h % 12 || 12)}:${pad(m)}:${pad(s)} ${h >= 12 ? 'PM' : 'AM'}`;
-      const time24 = `${pad(h)}:${pad(m)}:${pad(s)}`;
-      const displayTime = is24H ? time24 : time12;
-      document.getElementById('clock-digital-display').textContent = displayTime;
-
-      requestAnimationFrame(tickLiveClock);
-    }
-
-    function toggleSweep() {
-      isSmoothSweep = !isSmoothSweep;
-      document.getElementById('btn-sweep').textContent = isSmoothSweep ? 'Sweep' : 'Tick';
-    }
-    function toggle24H() {
-      is24H = !is24H;
-      document.getElementById('btn-24h').textContent = is24H ? '24H' : '12H';
-    }
-
-    // Theme & Settings
-    function toggleTheme() {
-      const html = document.documentElement;
-      if (html.classList.contains('dark')) {
-        html.classList.remove('dark');
-        html.classList.add('light');
-        document.getElementById('theme-icon-sun').classList.add('hidden');
-        document.getElementById('theme-icon-moon').classList.remove('hidden');
-      } else {
-        html.classList.remove('light');
-        html.classList.add('dark');
-        document.getElementById('theme-icon-sun').classList.remove('hidden');
-        document.getElementById('theme-icon-moon').classList.add('hidden');
-      }
+      const overlay = document.getElementById('alarm-overlay');
+      const modal = document.getElementById('alarm-modal');
+      if (overlay) overlay.classList.add('hidden');
+      if (modal) modal.classList.add('hidden');
     }
 
     function toggleMute() {
       isMuted = !isMuted;
-      document.getElementById('mute-icon-unmuted').classList.toggle('hidden', isMuted);
-      document.getElementById('mute-icon-muted').classList.toggle('hidden', !isMuted);
+      const unmuted = document.getElementById('mute-icon-unmuted');
+      const muted = document.getElementById('mute-icon-muted');
+      if (unmuted && muted) {
+        if (isMuted) {
+          unmuted.classList.add('hidden');
+          muted.classList.remove('hidden');
+        } else {
+          unmuted.classList.remove('hidden');
+          muted.classList.add('hidden');
+        }
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      if (isDark) {
+        html.classList.remove('dark');
+        html.classList.add('light');
+      } else {
+        html.classList.add('dark');
+        html.classList.remove('light');
+      }
+      const sun = document.getElementById('theme-icon-sun');
+      const moon = document.getElementById('theme-icon-moon');
+      if (sun && moon) {
+        if (isDark) {
+          sun.classList.add('hidden');
+          moon.classList.remove('hidden');
+        } else {
+          sun.classList.remove('hidden');
+          moon.classList.add('hidden');
+        }
+      }
     }
 
     function toggleFullscreen() {
-      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-      else document.exitFullscreen();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
     }
 
+    // Custom Picker Modal
+    function openCustomPicker() {
+      document.getElementById('modal-custom-picker').classList.remove('hidden');
+    }
+    function closeCustomPicker() {
+      document.getElementById('modal-custom-picker').classList.add('hidden');
+    }
+    function stepCustomHours(d) {
+      const el = document.getElementById('input-custom-hrs');
+      let v = parseInt(el.value) || 0;
+      el.value = Math.max(0, Math.min(23, v + d));
+    }
+    function stepCustomMins(d) {
+      const el = document.getElementById('input-custom-mins');
+      let v = parseInt(el.value) || 0;
+      let nv = v + d;
+      if (nv < 0) nv = 59;
+      if (nv > 59) nv = 0;
+      el.value = nv;
+    }
+    function stepCustomSecs(d) {
+      const el = document.getElementById('input-custom-secs');
+      let v = parseInt(el.value) || 0;
+      let nv = v + d;
+      if (nv < 0) nv = 59;
+      if (nv > 59) nv = 0;
+      el.value = nv;
+    }
+    function applyCustomPicker() {
+      const h = parseInt(document.getElementById('input-custom-hrs').value) || 0;
+      const m = parseInt(document.getElementById('input-custom-mins').value) || 0;
+      const s = parseInt(document.getElementById('input-custom-secs').value) || 0;
+      const total = h * 3600 + m * 60 + s;
+      if (total > 0) {
+        switchTimerMode('countdown', total);
+      }
+      closeCustomPicker();
+    }
+
+    // Settings Modal
     function openSettingsModal() {
+      renderSettingsPalettes();
       const container = document.getElementById('settings-sound-list');
       container.innerHTML = SOUNDS.map(s => {
         const sel = s.id === currentSound;
         const isCustom = s.id.startsWith('custom_alarm');
         return `
-          <div onclick="selectSound('${s.id}')" class="flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-purple-600/20 border-purple-500/50 text-purple-200 shadow-sm' : 'liquid-btn border-white/[0.06] text-slate-300 hover:border-purple-500/25'}">
+          <div onclick="selectSound('${s.id}')" class="flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-white/[0.14] border-white/40 text-white shadow-sm' : 'liquid-btn border-white/[0.06] text-slate-300 hover:border-white/20'}">
             <div class="flex-1 min-w-0 pr-2">
               <div class="flex items-center space-x-1.5">
                 <span class="text-xs font-bold truncate text-white">${s.name}</span>
-                ${isCustom ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Imported</span>' : ''}
-                ${sel ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/30 text-purple-200">Active</span>' : ''}
+                ${isCustom ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/[0.08] text-slate-300 border border-white/10">Imported</span>' : ''}
+                ${sel ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-white/[0.16] text-white">Active</span>' : ''}
               </div>
               <div class="text-[10px] text-slate-400 truncate mt-0.5">${s.desc}</div>
             </div>
@@ -1388,6 +1534,111 @@
       document.getElementById('settings-volume-slider').value = v;
     }
 
+    // Stopwatch logic
+    let swRunning = false;
+    let swPaused = false;
+    let swStart = 0;
+    let swAccum = 0;
+    let swLaps = [];
+    let swLastLapTime = 0;
+    let swFrame = null;
+
+    function formatSw(ms) {
+      const totSec = Math.floor(ms / 1000);
+      const m = Math.floor(totSec / 60);
+      const s = totSec % 60;
+      const cs = Math.floor((ms % 1000) / 10);
+      return { main: `${pad(m)}:${pad(s)}`, cs: pad(cs) };
+    }
+
+    function updateSwUI() {
+      const f = formatSw(swAccum);
+      document.getElementById('sw-main').textContent = f.main;
+      document.getElementById('sw-cs').textContent = '.' + f.cs;
+    }
+
+    function startStopwatch() {
+      swRunning = true;
+      swPaused = false;
+      swStart = performance.now();
+      document.getElementById('sw-start-btn').classList.add('hidden');
+      document.getElementById('sw-lap-btn').classList.remove('hidden');
+      document.getElementById('sw-pause-btn').classList.remove('hidden');
+      document.getElementById('sw-reset-btn').classList.add('hidden');
+      document.getElementById('sw-resume-btn').classList.add('hidden');
+
+      function tick() {
+        if (!swRunning) return;
+        const now = performance.now();
+        swAccum += now - swStart;
+        swStart = now;
+        updateSwUI();
+        swFrame = requestAnimationFrame(tick);
+      }
+      swFrame = requestAnimationFrame(tick);
+    }
+
+    function pauseStopwatch() {
+      swRunning = false;
+      swPaused = true;
+      if (swFrame) cancelAnimationFrame(swFrame);
+      document.getElementById('sw-lap-btn').classList.add('hidden');
+      document.getElementById('sw-pause-btn').classList.add('hidden');
+      document.getElementById('sw-reset-btn').classList.remove('hidden');
+      document.getElementById('sw-resume-btn').classList.remove('hidden');
+    }
+
+    function resumeStopwatch() {
+      startStopwatch();
+    }
+
+    function resetStopwatch() {
+      swRunning = false;
+      swPaused = false;
+      swAccum = 0;
+      swLastLapTime = 0;
+      swLaps = [];
+      if (swFrame) cancelAnimationFrame(swFrame);
+      updateSwUI();
+      document.getElementById('sw-reset-btn').classList.add('hidden');
+      document.getElementById('sw-resume-btn').classList.add('hidden');
+      document.getElementById('sw-start-btn').classList.remove('hidden');
+      document.getElementById('sw-laps-list').innerHTML = '<div class="h-full flex items-center justify-center text-slate-500 text-[11px] italic">Press &quot;Lap&quot; while running to record splits</div>';
+    }
+
+    function recordStopwatchLap() {
+      if (!swRunning && !swPaused) return;
+      const splitTime = swAccum - swLastLapTime;
+      swLastLapTime = swAccum;
+      const lapNum = swLaps.length + 1;
+      swLaps.unshift({ num: lapNum, split: splitTime, total: swAccum });
+
+      const container = document.getElementById('sw-laps-list');
+      container.innerHTML = swLaps.map(l => {
+        const s = formatSw(l.split);
+        const t = formatSw(l.total);
+        return `
+          <div class="flex items-center justify-between py-1 px-1 text-slate-300">
+            <span class="text-slate-400 w-10">#${l.num}</span>
+            <span class="tabular">+${s.main}.${s.cs}</span>
+            <span class="text-slate-500 tabular text-[11px]">${t.main}.${t.cs}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function copyLaps() {
+      if (swLaps.length === 0) return;
+      const text = swLaps.map(l => {
+        const s = formatSw(l.split);
+        const t = formatSw(l.total);
+        return `#${l.num} | Split: ${s.main}.${s.cs} | Total: ${t.main}.${t.cs}`;
+      }).join('\n');
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copy-laps-btn');
+      if (btn) btn.innerHTML = '<span class="text-emerald-400">Copied!</span>';
+      setTimeout(() => { if (btn) btn.innerHTML = '<span>Copy</span>'; }, 2000);
+    }
+
     // Keyboard bindings
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
@@ -1399,26 +1650,36 @@
       }
     });
 
-    // ───── Futuristic Three.js Ambient 3D Engine (Reference Inspired) ─────
+    // ═════════════════════════════════════════════════════════════════
+    // Three.js Ambient 3D Engine — Palette-Reactive & Visible in Gaps
+    // ═════════════════════════════════════════════════════════════════
+    let threeScene, threeCamera, threeRenderer, threeMainGroup;
+    let threeRings = [], threeParticles, threeIco, threeTorus, threeOcta, threeSphere;
+    let threeAmbient, threeLight1, threeLight2;
+
     function initThree() {
       const container = document.getElementById('three-container');
       if (!container || typeof THREE === 'undefined') return;
+      container.innerHTML = '';
 
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0, 32);
+      const pTheme = PALETTES[currentPalette] || PALETTES.midnight;
+      const { three } = pTheme;
 
-      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-      container.appendChild(renderer.domElement);
+      threeScene = new THREE.Scene();
+      threeCamera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 1000);
+      threeCamera.position.set(0, 0, 32);
 
-      const mainGroup = new THREE.Group();
-      scene.add(mainGroup);
+      threeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
+      threeRenderer.setSize(window.innerWidth, window.innerHeight);
+      threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      container.appendChild(threeRenderer.domElement);
 
-      // Three Glowing Orbital Rings
+      threeMainGroup = new THREE.Group();
+      threeScene.add(threeMainGroup);
+
+      // Orbital Rings
       const orbitGroup = new THREE.Group();
-      mainGroup.add(orbitGroup);
+      threeMainGroup.add(orbitGroup);
 
       function createRing(rx, ry, color, opacity, rotX, rotY) {
         const curve = new THREE.EllipseCurve(0, 0, rx, ry, 0, 2 * Math.PI, false, 0);
@@ -1430,139 +1691,242 @@
         line.rotation.y = rotY;
         return line;
       }
-      const r1 = createRing(16, 12, 0xa855f7, 0.35, Math.PI / 3, Math.PI / 6);
-      const r2 = createRing(22, 16, 0x818cf8, 0.25, -Math.PI / 4, Math.PI / 4);
-      const r3 = createRing(28, 20, 0x38bdf8, 0.2, Math.PI / 6, -Math.PI / 5);
+      const r1 = createRing(18, 13, three.rings[0], 0.38, Math.PI / 3.2, Math.PI / 5.5);
+      const r2 = createRing(26, 19, three.rings[1], 0.28, -Math.PI / 3.8, Math.PI / 4.2);
+      const r3 = createRing(34, 24, three.rings[2], 0.2, Math.PI / 5, -Math.PI / 4.5);
       orbitGroup.add(r1);
       orbitGroup.add(r2);
       orbitGroup.add(r3);
+      threeRings = [r1, r2, r3, orbitGroup];
 
       // Stardust Particles
-      const pCount = 750;
+      const pCount = 800;
       const pos = new Float32Array(pCount * 3);
+      const colors = new Float32Array(pCount * 3);
+      const baseColors = three.particles.map(c => new THREE.Color(c));
+
       for (let i = 0; i < pCount; i++) {
-        pos[i * 3] = (Math.random() - 0.5) * 60;
-        pos[i * 3 + 1] = (Math.random() - 0.5) * 45;
-        pos[i * 3 + 2] = (Math.random() - 0.5) * 40;
+        pos[i * 3] = (Math.random() - 0.5) * 65;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * 50;
+        pos[i * 3 + 2] = (Math.random() - 0.5) * 45;
+
+        const c = baseColors[i % baseColors.length];
+        colors[i * 3] = c.r;
+        colors[i * 3 + 1] = c.g;
+        colors[i * 3 + 2] = c.b;
       }
       const pGeo = new THREE.BufferGeometry();
       pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const pMat = new THREE.PointsMaterial({ size: 0.12, color: 0xc084fc, transparent: true, opacity: 0.45 });
-      const pSystem = new THREE.Points(pGeo, pMat);
-      mainGroup.add(pSystem);
+      pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      const pMat = new THREE.PointsMaterial({ size: 0.14, vertexColors: true, transparent: true, opacity: 0.65 });
+      threeParticles = new THREE.Points(pGeo, pMat);
+      threeMainGroup.add(threeParticles);
 
-      // Floating Geometric Objects
+      // Floating Geometric Objects in Viewable Gaps
       const geoGroup = new THREE.Group();
-      mainGroup.add(geoGroup);
+      threeMainGroup.add(geoGroup);
 
-      const icoGeo = new THREE.IcosahedronGeometry(2.4, 1);
-      const icoMat = new THREE.MeshStandardMaterial({ color: 0xa855f7, wireframe: true, transparent: true, opacity: 0.35, roughness: 0.2, metalness: 0.8 });
-      const icoMesh = new THREE.Mesh(icoGeo, icoMat);
-      icoMesh.position.set(-18, 9, -6);
-      geoGroup.add(icoMesh);
+      const icoGeo = new THREE.IcosahedronGeometry(2.2, 1);
+      const icoMat = new THREE.MeshStandardMaterial({ color: three.geo.ico, wireframe: true, transparent: true, opacity: 0.42, roughness: 0.2, metalness: 0.85 });
+      threeIco = new THREE.Mesh(icoGeo, icoMat);
+      threeIco.position.set(-6, 6, -5);
+      geoGroup.add(threeIco);
 
-      const torusGeo = new THREE.TorusGeometry(3.5, 0.2, 16, 90);
-      const torusMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.38, roughness: 0.15, metalness: 0.85 });
-      const torusMesh = new THREE.Mesh(torusGeo, torusMat);
-      torusMesh.position.set(19, -8, -8);
-      torusMesh.rotation.x = Math.PI / 3;
-      geoGroup.add(torusMesh);
+      const torusGeo = new THREE.TorusGeometry(3.2, 0.18, 16, 80);
+      const torusMat = new THREE.MeshStandardMaterial({ color: three.geo.torus, transparent: true, opacity: 0.4, roughness: 0.15, metalness: 0.9 });
+      threeTorus = new THREE.Mesh(torusGeo, torusMat);
+      threeTorus.position.set(6, -5, -6);
+      threeTorus.rotation.x = Math.PI / 3;
+      geoGroup.add(threeTorus);
 
-      const sphereGeo = new THREE.SphereGeometry(1.6, 32, 32);
-      const sphereMat = new THREE.MeshStandardMaterial({ color: 0x6366f1, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.3 });
-      const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
-      sphereMesh.position.set(-14, -10, -4);
-      geoGroup.add(sphereMesh);
+      const octaGeo = new THREE.OctahedronGeometry(2.0, 0);
+      const octaMat = new THREE.MeshStandardMaterial({ color: three.geo.sphere, wireframe: true, transparent: true, opacity: 0.38, roughness: 0.2, metalness: 0.8 });
+      threeOcta = new THREE.Mesh(octaGeo, octaMat);
+      threeOcta.position.set(0, 8, -7);
+      geoGroup.add(threeOcta);
 
-      // Purple Ambient & Point Lights
-      const ambLight = new THREE.AmbientLight(0x2e1065, 1.4);
-      scene.add(ambLight);
-      const ptLight1 = new THREE.PointLight(0xa855f7, 2.8, 60);
-      ptLight1.position.set(15, 12, 10);
-      scene.add(ptLight1);
-      const ptLight2 = new THREE.PointLight(0x6366f1, 2.0, 50);
-      ptLight2.position.set(-15, -12, 8);
-      scene.add(ptLight2);
+      const sphereGeo = new THREE.SphereGeometry(1.5, 32, 32);
+      const sphereMat = new THREE.MeshStandardMaterial({ color: three.geo.sphere, roughness: 0.1, metalness: 0.92, transparent: true, opacity: 0.32 });
+      threeSphere = new THREE.Mesh(sphereGeo, sphereMat);
+      threeSphere.position.set(-7, -6, -4);
+      geoGroup.add(threeSphere);
 
-      // Mouse Parallax
+      // Lights
+      threeAmbient = new THREE.AmbientLight(three.ambient, three.ambientInt);
+      threeScene.add(threeAmbient);
+
+      threeLight1 = new THREE.PointLight(three.light1.color, three.light1.int, 60);
+      threeLight1.position.set(three.light1.x, three.light1.y, three.light1.z);
+      threeScene.add(threeLight1);
+
+      threeLight2 = new THREE.PointLight(three.light2.color, three.light2.int, 50);
+      threeLight2.position.set(three.light2.x, three.light2.y, three.light2.z);
+      threeScene.add(threeLight2);
+
       let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
       window.addEventListener('mousemove', (e) => {
         mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
         mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
       });
 
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
+      let clock = new THREE.Clock();
+      function animate() {
+        requestAnimationFrame(animate);
+        const elapsed = clock.getElapsedTime();
 
-      function anim() {
-        requestAnimationFrame(anim);
-        orbitGroup.rotation.z += 0.0012;
-        r1.rotation.y += 0.0008;
-        r2.rotation.x += 0.0006;
-        icoMesh.rotation.x += 0.004;
-        icoMesh.rotation.y += 0.006;
-        torusMesh.rotation.y += 0.005;
-        torusMesh.rotation.z += 0.003;
-        pSystem.rotation.y += 0.0004;
+        orbitGroup.rotation.z += 0.0009;
+        r1.rotation.y += 0.0006;
+        r2.rotation.x += 0.0005;
 
-        targetX = mouseX * 0.25;
-        targetY = mouseY * 0.2;
-        mainGroup.rotation.y += (targetX - mainGroup.rotation.y) * 0.04;
-        mainGroup.rotation.x += (-targetY - mainGroup.rotation.x) * 0.04;
+        threeIco.rotation.x += 0.003;
+        threeIco.rotation.y += 0.005;
+        threeIco.position.y = 6 + Math.sin(elapsed * 0.7) * 1.2;
+        threeIco.position.x = -6 + Math.cos(elapsed * 0.5) * 0.8;
 
-        renderer.render(scene, camera);
+        threeTorus.rotation.y += 0.004;
+        threeTorus.rotation.z += 0.003;
+        threeTorus.position.y = -5 + Math.cos(elapsed * 0.6) * 1.2;
+        threeTorus.position.x = 6 + Math.sin(elapsed * 0.5) * 0.8;
+
+        threeOcta.rotation.y += 0.004;
+        threeOcta.position.y = 8 + Math.sin(elapsed * 0.8) * 1.0;
+        threeSphere.position.y = -6 + Math.sin(elapsed * 1.0) * 0.9;
+
+        threeParticles.rotation.y += 0.0003;
+
+        targetX = mouseX * 0.22;
+        targetY = mouseY * 0.18;
+        threeMainGroup.rotation.y += (targetX - threeMainGroup.rotation.y) * 0.04;
+        threeMainGroup.rotation.x += (-targetY - threeMainGroup.rotation.x) * 0.04;
+
+        threeRenderer.render(threeScene, threeCamera);
       }
-      anim();
+      animate();
+
+      window.addEventListener('resize', () => {
+        threeCamera.aspect = window.innerWidth / window.innerHeight;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(window.innerWidth, window.innerHeight);
+      });
     }
 
-    // ───── Weather Widget (IP-based, no API key) ─────
-    const WMO_ICONS = {
-      0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
-      45:'🌫️', 48:'🌫️',
-      51:'🌦️', 53:'🌧️', 55:'🌧️', 56:'🌧️', 57:'🌧️',
-      61:'🌧️', 63:'🌧️', 65:'🌧️', 66:'🌧️', 67:'🌧️',
-      71:'❄️', 73:'❄️', 75:'❄️', 77:'❄️',
-      80:'🌦️', 81:'🌧️', 82:'🌧️',
-      85:'❄️', 86:'❄️',
-      95:'⛈️', 96:'⛈️', 99:'⛈️'
+    window.updateThreePalette = function(paletteId) {
+      if (typeof initThree === 'function') {
+        initThree();
+      }
     };
 
-    async function fetchWeather() {
-      try {
-        const geo = await fetch('https://ipapi.co/json/').then(r => r.json());
-        if (!geo || !geo.latitude) return;
-        const wx = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current_weather=true`).then(r => r.json());
-        if (!wx || !wx.current_weather) return;
+    // Analog clock smooth sweep loop
+    let smoothSweep = true;
+    let is24H = false;
+    function updateAnalogClock() {
+      const now = new Date();
+      const ms = now.getMilliseconds();
+      const sec = now.getSeconds();
+      const min = now.getMinutes();
+      const hr = now.getHours();
 
-        const temp = Math.round(wx.current_weather.temperature);
-        const code = wx.current_weather.weathercode;
-        const icon = WMO_ICONS[code] || '🌡️';
-        const city = geo.city || geo.region || 'Local';
+      const secVal = smoothSweep ? sec + ms / 1000 : sec;
+      const minVal = min + secVal / 60;
+      const hrVal = (hr % 12) + minVal / 60;
 
-        document.getElementById('weather-icon').textContent = icon;
-        document.getElementById('weather-temp').textContent = `${temp}°C`;
-        document.getElementById('weather-city').textContent = city;
-        document.getElementById('weather-widget').classList.remove('hidden');
-        document.getElementById('weather-widget').classList.add('flex');
-      } catch (e) {}
+      const secAngle = secVal * 6;
+      const minAngle = minVal * 6;
+      const hrAngle = hrVal * 30;
+
+      const hSec = document.getElementById('hand-sec');
+      const hMin = document.getElementById('hand-min');
+      const hHr = document.getElementById('hand-hour');
+      if (hSec) hSec.setAttribute('transform', `rotate(${secAngle}, 100, 100)`);
+      if (hMin) hMin.setAttribute('transform', `rotate(${minAngle}, 100, 100)`);
+      if (hHr) hHr.setAttribute('transform', `rotate(${hrAngle}, 100, 100)`);
+
+      const ampm = hr >= 12 ? 'PM' : 'AM';
+      const d12 = `${pad(hr % 12 || 12)}:${pad(min)}:${pad(sec)} ${ampm}`;
+      const d24 = `${pad(hr)}:${pad(min)}:${pad(sec)}`;
+      const dElem = document.getElementById('clock-digital-display');
+      if (dElem) dElem.textContent = is24H ? d24 : d12;
+
+      const dtElem = document.getElementById('clock-date-display');
+      if (dtElem) dtElem.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+      const dtNum = document.getElementById('clock-date-number');
+      if (dtNum) dtNum.textContent = now.getDate().toString();
+
+      requestAnimationFrame(updateAnalogClock);
     }
 
-    // Initialize On Load
+    function toggleSweep() {
+      smoothSweep = !smoothSweep;
+      const b = document.getElementById('btn-sweep');
+      if (b) b.textContent = smoothSweep ? 'Sweep' : 'Tick';
+    }
+    function toggle24H() {
+      is24H = !is24H;
+      const b = document.getElementById('btn-24h');
+      if (b) b.textContent = is24H ? '24H' : '12H';
+    }
+
+    // IP Weather
+    function fetchWeather() {
+      fetch('https://ipapi.co/json/')
+        .then(r => r.json())
+        .then(d => {
+          if (!d.latitude || !d.longitude) return;
+          const city = d.city || 'Local Area';
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.latitude}&longitude=${d.longitude}&current=temperature_2m,weather_code`)
+            .then(r => r.json())
+            .then(wd => {
+              const temp = Math.round(wd.current.temperature_2m);
+              const wWidget = document.getElementById('weather-widget');
+              if (wWidget) {
+                wWidget.classList.remove('hidden');
+                wWidget.classList.add('flex');
+                document.getElementById('weather-temp').textContent = `${temp}°C`;
+                document.getElementById('weather-city').textContent = city;
+              }
+            }).catch(() => {});
+        }).catch(() => {});
+    }
+
+    // Initialize application
     window.addEventListener('DOMContentLoaded', () => {
-      renderAnalogDialTicks();
-      tickLiveClock();
+      applyPalette(currentPalette);
+      renderHeaderPalettes();
+      renderSettingsPalettes();
+      initThree();
       updateTimerUI();
       updateQuoteUI();
-      initThree();
+      requestAnimationFrame(updateAnalogClock);
       fetchWeather();
-      setInterval(fetchWeather, 1800000);
-      try {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
-        document.getElementById('clock-timezone').textContent = tz;
-      } catch (e) {}
+
+      // Cultural dates
+      const now = new Date();
+      const bElem = document.getElementById('footer-bangla-date');
+      const hElem = document.getElementById('footer-hijri-date');
+      if (bElem) bElem.textContent = `🇧🇩 ${getBanglaDate(now)}`;
+      if (hElem) hElem.textContent = `🌙 ${getHijriDate(now)}`;
+
+      // Dial ticks
+      const ticksGroup = document.getElementById('analog-dial-ticks');
+      if (ticksGroup) {
+        for (let i = 0; i < 12; i++) {
+          const rad = (i * 30 * Math.PI) / 180;
+          const x1 = 100 + 76 * Math.sin(rad);
+          const y1 = 100 - 76 * Math.cos(rad);
+          const x2 = 100 + 86 * Math.sin(rad);
+          const y2 = 100 - 86 * Math.cos(rad);
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x1);
+          line.setAttribute('y1', y1);
+          line.setAttribute('x2', x2);
+          line.setAttribute('y2', y2);
+          line.setAttribute('stroke', i % 3 === 0 ? '#ffffff' : '#64748b');
+          line.setAttribute('stroke-width', i % 3 === 0 ? '2.5' : '1.2');
+          line.setAttribute('stroke-linecap', 'round');
+          ticksGroup.appendChild(line);
+        }
+      }
     });
   </script>
 </body>

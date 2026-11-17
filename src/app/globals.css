@@ -2,44 +2,203 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═════════════════════════════════════════════════════════════════
+   NEUTRAL FOUNDATIONS & REUSABLE MULTI-PALETTE DESIGN TOKEN SYSTEM
+   ═════════════════════════════════════════════════════════════════ */
+
 :root {
-  --bg: #090a10;
-  --fg: #f8fafc;
-  --card: rgba(18, 20, 30, 0.7);
-  --border: rgba(255, 255, 255, 0.08);
-  --accent: #a855f7;
-  --accent-glow: rgba(168, 85, 247, 0.3);
-  --muted: #94a3b8;
+  /* Default: Midnight (Black & Graphite) */
+  --bg-root: #060709;
+  --canvas-border: rgba(255, 255, 255, 0.08);
+  --glass-card: rgba(15, 17, 21, 0.58);
+  --glass-card-border: rgba(255, 255, 255, 0.08);
+  --glass-card-hover: rgba(241, 245, 249, 0.22);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(255, 255, 255, 0.03), transparent);
+  --fg-primary: #ffffff;
+  --fg-secondary: #cbd5e1;
+  --fg-muted: #94a3b8;
+  --accent-primary: #f8fafc;
+  --accent-secondary: #94a3b8;
+  --accent-btn-bg: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+  --accent-btn-hover: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+  --accent-btn-text: #ffffff;
+  --accent-glow: rgba(255, 255, 255, 0.12);
+  --badge-bg: rgba(255, 255, 255, 0.06);
+  --badge-border: rgba(255, 255, 255, 0.12);
+  --badge-text: #f1f5f9;
 }
 
+/* 1. Midnight — Black & Graphite */
+[data-palette="midnight"] {
+  --bg-root: #060709;
+  --canvas-border: rgba(255, 255, 255, 0.08);
+  --glass-card: rgba(15, 17, 21, 0.58);
+  --glass-card-border: rgba(255, 255, 255, 0.08);
+  --glass-card-hover: rgba(241, 245, 249, 0.22);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(255, 255, 255, 0.03), transparent);
+  --fg-primary: #ffffff;
+  --fg-secondary: #cbd5e1;
+  --fg-muted: #94a3b8;
+  --accent-primary: #f8fafc;
+  --accent-secondary: #94a3b8;
+  --accent-btn-bg: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+  --accent-btn-hover: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+  --accent-btn-text: #ffffff;
+  --accent-glow: rgba(255, 255, 255, 0.12);
+  --badge-bg: rgba(255, 255, 255, 0.06);
+  --badge-border: rgba(255, 255, 255, 0.12);
+  --badge-text: #f1f5f9;
+}
+
+/* 2. Silver — White & Cool Grey */
+[data-palette="silver"] {
+  --bg-root: #0a0c10;
+  --canvas-border: rgba(226, 232, 240, 0.12);
+  --glass-card: rgba(22, 27, 36, 0.55);
+  --glass-card-border: rgba(226, 232, 240, 0.12);
+  --glass-card-hover: rgba(226, 232, 240, 0.3);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(226, 232, 240, 0.4), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(226, 232, 240, 0.05), transparent);
+  --fg-primary: #ffffff;
+  --fg-secondary: #cbd5e1;
+  --fg-muted: #94a3b8;
+  --accent-primary: #e2e8f0;
+  --accent-secondary: #94a3b8;
+  --accent-btn-bg: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  --accent-btn-hover: linear-gradient(135deg, #475569 0%, #334155 100%);
+  --accent-btn-text: #ffffff;
+  --accent-glow: rgba(226, 232, 240, 0.18);
+  --badge-bg: rgba(226, 232, 240, 0.08);
+  --badge-border: rgba(226, 232, 240, 0.18);
+  --badge-text: #f8fafc;
+}
+
+/* 3. Carbon — Charcoal & Silver */
+[data-palette="carbon"] {
+  --bg-root: #09090b;
+  --canvas-border: rgba(212, 212, 216, 0.1);
+  --glass-card: rgba(24, 24, 27, 0.58);
+  --glass-card-border: rgba(212, 212, 216, 0.1);
+  --glass-card-hover: rgba(212, 212, 216, 0.28);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(212, 212, 216, 0.38), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(212, 212, 216, 0.04), transparent);
+  --fg-primary: #fafafa;
+  --fg-secondary: #d4d4d8;
+  --fg-muted: #a1a1aa;
+  --accent-primary: #e4e4e7;
+  --accent-secondary: #a1a1aa;
+  --accent-btn-bg: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+  --accent-btn-hover: linear-gradient(135deg, #3f3f46 0%, #27272a 100%);
+  --accent-btn-text: #fafafa;
+  --accent-glow: rgba(212, 212, 216, 0.16);
+  --badge-bg: rgba(212, 212, 216, 0.08);
+  --badge-border: rgba(212, 212, 216, 0.16);
+  --badge-text: #f4f4f5;
+}
+
+/* 4. Warm Sand — Beige & Cream */
+[data-palette="warm-sand"] {
+  --bg-root: #0c0b09;
+  --canvas-border: rgba(231, 223, 213, 0.12);
+  --glass-card: rgba(28, 24, 21, 0.58);
+  --glass-card-border: rgba(231, 223, 213, 0.12);
+  --glass-card-hover: rgba(231, 223, 213, 0.32);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(231, 223, 213, 0.4), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(231, 223, 213, 0.05), transparent);
+  --fg-primary: #fdfbf7;
+  --fg-secondary: #e7dfd5;
+  --fg-muted: #b8aba0;
+  --accent-primary: #f5ede3;
+  --accent-secondary: #d6c7b2;
+  --accent-btn-bg: linear-gradient(135deg, #383029 0%, #241f1a 100%);
+  --accent-btn-hover: linear-gradient(135deg, #4a4038 0%, #383029 100%);
+  --accent-btn-text: #fdfbf7;
+  --accent-glow: rgba(231, 223, 213, 0.18);
+  --badge-bg: rgba(231, 223, 213, 0.08);
+  --badge-border: rgba(231, 223, 213, 0.18);
+  --badge-text: #fdfbf7;
+}
+
+/* 5. Sage — Muted Grey & Soft Green */
+[data-palette="sage"] {
+  --bg-root: #080c0a;
+  --canvas-border: rgba(163, 184, 153, 0.12);
+  --glass-card: rgba(19, 27, 22, 0.58);
+  --glass-card-border: rgba(163, 184, 153, 0.12);
+  --glass-card-hover: rgba(163, 184, 153, 0.32);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(163, 184, 153, 0.4), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(163, 184, 153, 0.05), transparent);
+  --fg-primary: #f3f7f4;
+  --fg-secondary: #c9d9cb;
+  --fg-muted: #8e9f90;
+  --accent-primary: #b8ccad;
+  --accent-secondary: #8ea384;
+  --accent-btn-bg: linear-gradient(135deg, #233428 0%, #16221a 100%);
+  --accent-btn-hover: linear-gradient(135deg, #304737 0%, #233428 100%);
+  --accent-btn-text: #f3f7f4;
+  --accent-glow: rgba(163, 184, 153, 0.18);
+  --badge-bg: rgba(163, 184, 153, 0.08);
+  --badge-border: rgba(163, 184, 153, 0.18);
+  --badge-text: #f3f7f4;
+}
+
+/* 6. Arctic — Frost White & Steel Grey */
+[data-palette="arctic"] {
+  --bg-root: #06090e;
+  --canvas-border: rgba(186, 230, 253, 0.12);
+  --glass-card: rgba(16, 23, 34, 0.58);
+  --glass-card-border: rgba(186, 230, 253, 0.12);
+  --glass-card-hover: rgba(186, 230, 253, 0.32);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(186, 230, 253, 0.4), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(186, 230, 253, 0.05), transparent);
+  --fg-primary: #f0f9ff;
+  --fg-secondary: #cbd5e1;
+  --fg-muted: #94a3b8;
+  --accent-primary: #e0f2fe;
+  --accent-secondary: #93c5fd;
+  --accent-btn-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --accent-btn-hover: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+  --accent-btn-text: #f0f9ff;
+  --accent-glow: rgba(186, 230, 253, 0.18);
+  --badge-bg: rgba(186, 230, 253, 0.08);
+  --badge-border: rgba(186, 230, 253, 0.18);
+  --badge-text: #f0f9ff;
+}
+
+/* Light Theme Overrides */
 .light {
-  --bg: #f3f4f8;
-  --fg: #0f172a;
-  --card: rgba(255, 255, 255, 0.85);
-  --border: rgba(226, 232, 240, 0.8);
-  --accent: #9333ea;
-  --accent-glow: rgba(147, 51, 234, 0.2);
-  --muted: #64748b;
-}
-
-.dark {
-  --bg: #07080c;
-  --fg: #f8fafc;
-  --card: rgba(15, 17, 26, 0.65);
-  --border: rgba(255, 255, 255, 0.08);
-  --accent: #a855f7;
-  --accent-glow: rgba(168, 85, 247, 0.35);
-  --muted: #94a3b8;
+  --bg-root: #f4f6f8;
+  --canvas-border: rgba(0, 0, 0, 0.08);
+  --glass-card: rgba(255, 255, 255, 0.82);
+  --glass-card-border: rgba(226, 232, 240, 0.85);
+  --glass-card-hover: rgba(148, 163, 184, 0.5);
+  --glass-highlight: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  --glass-inner-glow: radial-gradient(ellipse 60% 30% at 50% 0%, rgba(255, 255, 255, 0.4), transparent);
+  --fg-primary: #0f172a;
+  --fg-secondary: #334155;
+  --fg-muted: #64748b;
+  --accent-primary: #1e293b;
+  --accent-secondary: #475569;
+  --accent-btn-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --accent-btn-hover: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --accent-btn-text: #ffffff;
+  --accent-glow: rgba(15, 23, 42, 0.15);
+  --badge-bg: rgba(0, 0, 0, 0.04);
+  --badge-border: rgba(0, 0, 0, 0.08);
+  --badge-text: #0f172a;
 }
 
 html, body {
   height: 100%;
   overflow: hidden;
-  background-color: var(--bg);
-  color: var(--fg);
+  background-color: var(--bg-root);
+  color: var(--fg-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* Tabular nums for precision timers */
@@ -71,84 +230,51 @@ html, body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.25);
+  background: var(--glass-card-border);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.5);
+  background: var(--glass-card-hover);
 }
 
-/* ───── Futuristic Dark Liquid Glass System (Reference Inspired) ───── */
+/* ═════════════════════════════════════════════════════════════════
+   TRANSPARENT OUTER FRAMEWORK & LIQUID GLASS COMPONENTS
+   (Three.js animation clearly visible through all grid gaps)
+   ═════════════════════════════════════════════════════════════════ */
 
-/* Outer Floating Canvas */
+/* Outer Floating Canvas: Transparent so Three.js shines through all gaps */
 .dashboard-outer-canvas {
-  background: radial-gradient(
-    circle at 50% -20%,
-    rgba(147, 51, 234, 0.12) 0%,
-    rgba(15, 17, 28, 0.88) 55%,
-    rgba(7, 8, 12, 0.95) 100%
-  );
-  backdrop-filter: blur(48px) saturate(1.4);
-  -webkit-backdrop-filter: blur(48px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: transparent;
+  border: 1px solid var(--canvas-border);
   box-shadow:
-    0 30px 100px -15px rgba(0, 0, 0, 0.85),
-    0 0 1px 1px rgba(255, 255, 255, 0.05),
-    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+    0 25px 80px -20px rgba(0, 0, 0, 0.7),
+    0 0 1px 1px var(--canvas-border);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-.light .dashboard-outer-canvas {
-  background: radial-gradient(
-    circle at 50% -20%,
-    rgba(192, 132, 252, 0.15) 0%,
-    rgba(255, 255, 255, 0.9) 60%,
-    rgba(241, 245, 249, 0.95) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow:
-    0 20px 60px -10px rgba(0, 0, 0, 0.12),
-    inset 0 1px 2px rgba(255, 255, 255, 0.8);
-}
-
-/* Glass Card */
+/* Translucent Liquid Glass Card */
 .liquid-glass {
   position: relative;
-  background: linear-gradient(
-    145deg,
-    rgba(24, 27, 40, 0.55) 0%,
-    rgba(14, 16, 26, 0.42) 100%
-  );
-  backdrop-filter: blur(36px) saturate(1.4);
-  -webkit-backdrop-filter: blur(36px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--glass-card);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid var(--glass-card-border);
   box-shadow:
-    0 8px 32px 0 rgba(0, 0, 0, 0.45),
+    0 8px 32px 0 rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  transition: background 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .liquid-glass:hover {
-  border-color: rgba(168, 85, 247, 0.25);
+  border-color: var(--glass-card-hover);
   box-shadow:
-    0 12px 40px 0 rgba(0, 0, 0, 0.55),
-    0 0 20px rgba(168, 85, 247, 0.12),
+    0 12px 40px 0 rgba(0, 0, 0, 0.45),
+    0 0 20px var(--accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-.light .liquid-glass {
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(248, 250, 252, 0.65) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow:
-    0 8px 24px 0 rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Specular Violet Top Highlight Strip */
+/* Specular Top Highlight Strip */
 .liquid-glass::before {
   content: '';
   position: absolute;
@@ -156,72 +282,54 @@ html, body {
   left: 8%;
   right: 8%;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(192, 132, 252, 0.35) 25%,
-    rgba(168, 85, 247, 0.5) 50%,
-    rgba(99, 102, 241, 0.3) 75%,
-    transparent 100%
-  );
+  background: var(--glass-highlight);
   border-radius: 999px;
   pointer-events: none;
   z-index: 1;
+  transition: background 0.4s ease;
 }
 
-/* Subtle Violet Inner Ambient Glow */
+/* Subtle Inner Ambient Glow */
 .liquid-glass::after {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(
-    ellipse 70% 35% at 50% 0%,
-    rgba(168, 85, 247, 0.05) 0%,
-    transparent 70%
-  );
+  background: var(--glass-inner-glow);
   pointer-events: none;
   z-index: 1;
+  transition: background 0.4s ease;
 }
 
 /* Glass Header / Nav Bar */
 .liquid-header {
-  background: linear-gradient(
-    180deg,
-    rgba(24, 27, 40, 0.65) 0%,
-    rgba(14, 16, 26, 0.45) 100%
-  );
-  backdrop-filter: blur(36px) saturate(1.4);
-  -webkit-backdrop-filter: blur(36px) saturate(1.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--glass-card);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border-bottom: 1px solid var(--glass-card-border);
   box-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.4),
+    0 4px 20px rgba(0, 0, 0, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.light .liquid-header {
-  background: rgba(255, 255, 255, 0.75);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.05);
+  transition: background 0.4s ease, border-color 0.4s ease;
 }
 
 /* Glass Interactive Buttons */
 .liquid-btn {
   background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-card-border);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.25);
+    0 2px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .liquid-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(168, 85, 247, 0.35);
+  border-color: var(--glass-card-hover);
   box-shadow:
-    0 0 14px rgba(168, 85, 247, 0.2),
+    0 0 14px var(--accent-glow),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transform: translateY(-1px);
 }
@@ -230,40 +338,50 @@ html, body {
   transform: translateY(0) scale(0.98);
 }
 
-.light .liquid-btn {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-.light .liquid-btn:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(147, 51, 234, 0.3);
-}
-
-/* Primary Purple Glow Action Button (Inspired by "Send" button in reference image) */
-.purple-glow-btn {
-  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 50%, #6366f1 100%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+/* Sophisticated Neutral Glow Action Button */
+.palette-glow-btn {
+  background: var(--accent-btn-bg);
+  border: 1px solid var(--accent-glow);
   box-shadow:
-    0 4px 20px -2px rgba(168, 85, 247, 0.55),
-    inset 0 1px 1px rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+    0 4px 20px -2px var(--accent-glow),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  color: var(--accent-btn-text);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.purple-glow-btn:hover {
+.palette-glow-btn:hover {
+  background: var(--accent-btn-hover);
   box-shadow:
-    0 6px 28px -2px rgba(168, 85, 247, 0.75),
-    0 0 16px rgba(192, 132, 252, 0.5),
-    inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    0 6px 28px -2px var(--accent-glow),
+    0 0 16px var(--accent-glow),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
   transform: translateY(-1px) scale(1.02);
 }
 
-.purple-glow-btn:active {
+.palette-glow-btn:active {
   transform: translateY(0) scale(0.98);
 }
 
-/* Glowing Pulse Orb (Like the center 3D sphere in reference) */
+/* Backwards-compatibility alias for purple-glow-btn */
+.purple-glow-btn {
+  background: var(--accent-btn-bg);
+  border: 1px solid var(--accent-glow);
+  box-shadow:
+    0 4px 20px -2px var(--accent-glow),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  color: var(--accent-btn-text);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.purple-glow-btn:hover {
+  background: var(--accent-btn-hover);
+  box-shadow:
+    0 6px 28px -2px var(--accent-glow),
+    0 0 16px var(--accent-glow),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Floating animation for subtle ambient elements */
 @keyframes orbFloat {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);

@@ -72,6 +72,22 @@ ZenClock is structured into four cohesive, concurrently active modules:
 
 ---
 
+## 🎨 6 Professionally Designed Neutral Palettes
+
+ZenClock features a complete design-token architecture with 6 coordinated neutral palettes:
+
+1. **Midnight (Default):** Deep Obsidian Black (`#060709`), rich graphite panels, hairline slate borders, and luminescent platinum text.
+2. **Silver:** Luminous cool grey (`#0a0c10`) with frosted glass, polished platinum accents, and graphite typography.
+3. **Carbon:** Matte charcoal (`#09090b`) textures with brushed steel borders and sharp titanium highlights.
+4. **Warm Sand:** Warm stone (`#0c0b09`), desert dune undertones, soft linen borders, and gentle incandescent amber glow.
+5. **Sage:** Earthy slate grey (`#080c0a`) infused with whisper-quiet eucalyptus and matcha green accents.
+6. **Arctic:** Glacial frost white (`#06090e`) with sub-zero steel grey sheens and crisp diamond highlights.
+
+> [!TIP]
+> Switch palettes on the fly via the **Palette dropdown** in the header or in the **Theme & Preferences** modal. Selected palettes are persisted in `localStorage` and smoothly adjust the Three.js 3D particles, orbital rings, and ambient lighting in real time.
+
+---
+
 ## 🎨 4 Switchable UI Layouts
 
 ZenClock allows switching timer visualization modes on the fly:

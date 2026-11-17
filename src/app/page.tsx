@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
+import confetti from 'canvas-confetti';
 import {
   Play,
   Pause,
@@ -28,10 +29,12 @@ import {
   Plus,
   Minus,
   X,
-  Orbit,
   Globe,
   SkipForward,
   Quote,
+  TrendingUp,
+  Activity,
+  Layers,
 } from 'lucide-react';
 
 import { DesignStyle, TimerMode, LapItem } from '@/lib/types';
@@ -62,7 +65,7 @@ const WMO_ICONS: Record<number, string> = {
   71: '❄️', 73: '❄️', 75: '❄️', 77: '❄️',
   80: '🌦️', 81: '🌧️', 82: '🌧️',
   85: '❄️', 86: '❄️',
-  95: '⛈️', 96: '⛈️', 99: '⛈️'
+  95: '⛈️', 96: '⛈️', 99: '⛈️',
 };
 
 export default function ZenClockApp() {
@@ -152,7 +155,9 @@ export default function ZenClockApp() {
     const root = document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
+      root.classList.remove('light');
     } else {
+      root.classList.add('light');
       root.classList.remove('dark');
     }
   }, [theme]);
@@ -223,7 +228,7 @@ export default function ZenClockApp() {
         const temp = Math.round(wx.current_weather.temperature);
         const code = wx.current_weather.weathercode;
         const icon = WMO_ICONS[code] || '🌡️';
-        const city = geo.city || geo.region || 'Unknown';
+        const city = geo.city || geo.region || 'Local';
         setWeather({ temp, icon, city });
       } catch {}
     }
@@ -248,6 +253,8 @@ export default function ZenClockApp() {
       setIsAlarmActive(true);
       document.body.classList.add('alarm-active');
       document.title = "⏰ TIME'S UP! — ZenClock";
+
+      // Trigger locally stored audio loop with Web Audio fallback
       playAlarm(selectedSound, volume, isMuted);
     },
     [selectedSound, volume, isMuted]
@@ -260,48 +267,13 @@ export default function ZenClockApp() {
     stopAlarm();
   }, []);
 
-  // Global Keyboard shortcuts: ESC/Space to dismiss alarm, 'M' to mute
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
-
-      if (isAlarmActive && (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter')) {
-        e.preventDefault();
-        dismissAlarmAlert();
-        return;
-      }
-      if (e.key === 'm' || e.key === 'M') {
-        e.preventDefault();
-        setIsMuted((prev) => {
-          const next = !prev;
-          updateVolume(volume, next);
-          return next;
-        });
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAlarmActive, dismissAlarmAlert, volume]);
-
-  // Real-time System Clock
-  useEffect(() => {
-    let anim: number;
-    const updateTime = () => {
-      setCurrentTime(new Date());
-      anim = requestAnimationFrame(updateTime);
-    };
-    anim = requestAnimationFrame(updateTime);
-    return () => cancelAnimationFrame(anim);
-  }, []);
-
-  // Countdown timer tick loop
+  // Countdown Timer Engine
   useEffect(() => {
     if (!isTimerRunning || isTimerPaused) return;
 
     const interval = window.setInterval(() => {
       if (!timerTargetEndRef.current) return;
-      const now = Date.now();
-      const diffMs = timerTargetEndRef.current - now;
+      const diffMs = timerTargetEndRef.current - Date.now();
 
       if (diffMs <= 0) {
         setRemaining(0);
@@ -310,65 +282,122 @@ export default function ZenClockApp() {
         timerTargetEndRef.current = null;
 
         if (timerMode === 'pomodoro') {
-          setCompletedPomodoros((c) => c + 1);
+          setCompletedPomodoros((prev) => {
+            const next = prev + 1;
+            if (next % 4 === 0) {
+              confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+            return next;
+          });
           setStudySessionNumber((s) => (s >= 4 ? 1 : s + 1));
-          triggerAlarmAlert('Pomodoro Focus Session Completed!');
+          triggerAlarmAlert('Pomodoro Focus Session Finished! Take a break.');
         } else if (timerMode === 'deep_work') {
-          triggerAlarmAlert('Deep Work Block Completed! Take a Rest.');
+          triggerAlarmAlert('Deep Work Block Complete! Outstanding focus.');
         } else if (timerMode === 'short_break' || timerMode === 'long_break') {
-          triggerAlarmAlert('Break is Over! Ready to Focus?');
+          triggerAlarmAlert('Break Finished! Ready to resume flow?');
         } else {
-          triggerAlarmAlert('Custom Countdown Complete!');
+          triggerAlarmAlert('Countdown Timer Finished!');
         }
       } else {
-        const secs = Math.ceil(diffMs / 1000);
-        setRemaining(secs);
+        const secLeft = Math.ceil(diffMs / 1000);
+        setRemaining(secLeft);
+        document.title = `(${formatTime(secLeft)}) ZenClock`;
       }
     }, 100);
 
     return () => window.clearInterval(interval);
   }, [isTimerRunning, isTimerPaused, timerMode, triggerAlarmAlert]);
 
-  // Update browser tab title with active countdown
+  // Stopwatch Engine
   useEffect(() => {
-    if (isAlarmActive) return;
-    if (isTimerRunning && !isTimerPaused) {
-      document.title = `(${formatTime(remaining)}) ZenClock`;
-    } else {
-      document.title = 'ZenClock — Modern Focus Suite';
-    }
-  }, [remaining, isTimerRunning, isTimerPaused, isAlarmActive]);
+    if (!isSwRunning) return;
 
-  // Timer controls
+    const tick = () => {
+      if (swStartTimeRef.current !== null) {
+        const now = Date.now();
+        setSwElapsedMs(swAccumulatedRef.current + (now - swStartTimeRef.current));
+      }
+      swAnimFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    swAnimFrameRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (swAnimFrameRef.current) cancelAnimationFrame(swAnimFrameRef.current);
+    };
+  }, [isSwRunning]);
+
+  // Live System Clock Ticker
+  useEffect(() => {
+    let anim: number;
+    const update = () => {
+      setCurrentTime(new Date());
+      anim = requestAnimationFrame(update);
+    };
+    anim = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(anim);
+  }, []);
+
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (isAlarmActive) {
+          dismissAlarmAlert();
+        } else if (!isTimerRunning && !isTimerPaused) {
+          startTimer();
+        } else if (isTimerRunning) {
+          pauseTimer();
+        } else if (isTimerPaused) {
+          resumeTimer();
+        }
+      } else if (e.code === 'Escape') {
+        if (isAlarmActive) {
+          dismissAlarmAlert();
+        } else if (isCustomPickerOpen) {
+          setIsCustomPickerOpen(false);
+        } else if (isSettingsOpen) {
+          setIsSettingsOpen(false);
+        }
+      } else if (e.key === 'm' || e.key === 'M') {
+        const nextMuted = !isMuted;
+        setIsMuted(nextMuted);
+        updateVolume(volume, nextMuted);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAlarmActive, isTimerRunning, isTimerPaused, isMuted, volume, isCustomPickerOpen, isSettingsOpen, dismissAlarmAlert]);
+
+  // Timer Control Actions
   const startTimer = () => {
     unlockAudio();
-    const target = Date.now() + (remaining <= 0 ? duration : remaining) * 1000;
-    timerTargetEndRef.current = target;
-    if (remaining <= 0) setRemaining(duration);
+    if (remaining <= 0) {
+      setRemaining(duration);
+      timerTargetEndRef.current = Date.now() + duration * 1000;
+    } else {
+      timerTargetEndRef.current = Date.now() + remaining * 1000;
+    }
     setIsTimerRunning(true);
     setIsTimerPaused(false);
   };
 
   const pauseTimer = () => {
     if (timerTargetEndRef.current) {
-      const now = Date.now();
-      const currentRemaining = Math.max(0, Math.ceil((timerTargetEndRef.current - now) / 1000));
-      setRemaining(currentRemaining);
+      const left = Math.max(0, Math.ceil((timerTargetEndRef.current - Date.now()) / 1000));
+      setRemaining(left);
     }
     timerTargetEndRef.current = null;
     setIsTimerRunning(false);
     setIsTimerPaused(true);
+    document.title = 'ZenClock — Paused';
   };
 
   const resumeTimer = () => {
-    if (remaining <= 0) {
-      startTimer();
-      return;
-    }
-    unlockAudio();
-    timerTargetEndRef.current = Date.now() + remaining * 1000;
-    setIsTimerRunning(true);
-    setIsTimerPaused(false);
+    startTimer();
   };
 
   const resetTimer = () => {
@@ -376,74 +405,70 @@ export default function ZenClockApp() {
     setIsTimerRunning(false);
     setIsTimerPaused(false);
     setRemaining(duration);
+    document.title = 'ZenClock — Modern Focus Suite';
+  };
+
+  const addQuickSeconds = (seconds: number) => {
+    if (isTimerRunning && timerTargetEndRef.current) {
+      timerTargetEndRef.current += seconds * 1000;
+      setRemaining((r) => r + seconds);
+      setDuration((d) => d + seconds);
+    } else {
+      setDuration((d) => d + seconds);
+      setRemaining((r) => r + seconds);
+    }
   };
 
   const switchMode = (mode: TimerMode) => {
     setTimerMode(mode);
-    let dur = 1500;
-    if (mode === 'countdown') dur = duration || 1500;
-    if (mode === 'pomodoro') dur = 1500; // 25m
-    if (mode === 'deep_work') dur = 3000; // 50m
-    if (mode === 'short_break') dur = 300; // 5m
-    if (mode === 'long_break') dur = 900; // 15m
-
-    setDuration(dur);
-    setRemaining(dur);
     setIsTimerRunning(false);
     setIsTimerPaused(false);
     timerTargetEndRef.current = null;
+
+    let sec = 1500;
+    if (mode === 'countdown') sec = duration;
+    else if (mode === 'pomodoro') sec = 1500;
+    else if (mode === 'deep_work') sec = 3000;
+    else if (mode === 'short_break') sec = 300;
+    else if (mode === 'long_break') sec = 900;
+
+    setDuration(sec);
+    setRemaining(sec);
   };
 
-  const addQuickSeconds = (sec: number) => {
-    if (isTimerRunning && timerTargetEndRef.current) {
-      timerTargetEndRef.current += sec * 1000;
-      setRemaining((r) => r + sec);
-      setDuration((d) => d + sec);
-    } else {
-      const next = remaining + sec;
-      setDuration(next);
-      setRemaining(next);
+  // Custom Picker apply
+  const applyCustomDuration = () => {
+    const total = customHours * 3600 + customMinutes * 60 + customSeconds;
+    if (total > 0) {
+      setDuration(total);
+      setRemaining(total);
+      setIsTimerRunning(false);
+      setIsTimerPaused(false);
+      timerTargetEndRef.current = null;
     }
-  };
-
-  const applyCustomDuration = (totalSec: number) => {
-    const validSec = Math.max(5, Math.min(86400, totalSec));
-    setDuration(validSec);
-    setRemaining(validSec);
-    setIsTimerRunning(false);
-    setIsTimerPaused(false);
-    timerTargetEndRef.current = null;
     setIsCustomPickerOpen(false);
   };
 
-  // Stopwatch Logic
-  const stopwatchTick = useCallback(() => {
-    if (!swStartTimeRef.current) return;
-    const now = Date.now();
-    const elapsed = swAccumulatedRef.current + (now - swStartTimeRef.current);
-    setSwElapsedMs(elapsed);
-    swAnimFrameRef.current = requestAnimationFrame(stopwatchTick);
-  }, []);
-
+  // Stopwatch Actions
   const startStopwatch = () => {
     swStartTimeRef.current = Date.now();
     setIsSwRunning(true);
     setIsSwPaused(false);
-    swAnimFrameRef.current = requestAnimationFrame(stopwatchTick);
   };
 
   const pauseStopwatch = () => {
-    if (swStartTimeRef.current) {
+    if (swStartTimeRef.current !== null) {
       swAccumulatedRef.current += Date.now() - swStartTimeRef.current;
-      swStartTimeRef.current = null;
     }
-    if (swAnimFrameRef.current) cancelAnimationFrame(swAnimFrameRef.current);
+    swStartTimeRef.current = null;
     setIsSwRunning(false);
     setIsSwPaused(true);
   };
 
   const resumeStopwatch = () => {
-    startStopwatch();
+    swStartTimeRef.current = Date.now();
+    setIsSwRunning(true);
+    setIsSwPaused(false);
   };
 
   const resetStopwatch = () => {
@@ -459,81 +484,214 @@ export default function ZenClockApp() {
 
   const recordLap = () => {
     if (!isSwRunning) return;
-    const currentTotal = swElapsedMs;
-    const lapTime = currentTotal - swLastLapElapsedRef.current;
-    swLastLapElapsedRef.current = currentTotal;
+    const total = swElapsedMs;
+    const split = total - swLastLapElapsedRef.current;
+    swLastLapElapsedRef.current = total;
 
-    const newLap: LapItem = {
-      id: Math.random().toString(36).substring(2, 9),
-      lapNumber: laps.length + 1,
-      lapTimeMs: lapTime,
-      overallTimeMs: currentTotal,
-      timestamp: Date.now(),
-    };
-    setLaps((prev) => [newLap, ...prev]);
+    setLaps((prev) => [
+      {
+        id: Math.random().toString(36).substring(2, 9),
+        lapNumber: prev.length + 1,
+        lapTimeMs: split,
+        overallTimeMs: total,
+      },
+      ...prev,
+    ]);
   };
 
-  const copyLapsToClipboard = async () => {
+  const copyLapsToClipboard = () => {
     if (laps.length === 0) return;
     const text = laps
-      .map((l) => {
-        const split = formatStopwatch(l.lapTimeMs);
-        const total = formatStopwatch(l.overallTimeMs);
-        return `Lap ${l.lapNumber}: +${split.main}.${split.cs} (Total: ${total.main}.${total.cs})`;
+      .map((lap) => {
+        const split = formatStopwatch(lap.lapTimeMs);
+        const total = formatStopwatch(lap.overallTimeMs);
+        return `Lap ${lap.lapNumber}: +${split.main}.${split.cs} (Total: ${total.main}.${total.cs})`;
       })
       .join('\n');
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedLaps(true);
-      setTimeout(() => setCopiedLaps(false), 2000);
-    } catch {}
+
+    navigator.clipboard.writeText(text);
+    setCopiedLaps(true);
+    setTimeout(() => setCopiedLaps(false), 2000);
   };
 
-  // Three.js ambient background
+  // Sound Preview Actions
+  const handlePreviewSound = (id: string) => {
+    if (previewingId === id) {
+      stopPreview();
+      setPreviewingId(null);
+    } else {
+      unlockAudio();
+      previewSound(id, volume);
+      setPreviewingId(id);
+    }
+  };
+
+  // ───── Futuristic Three.js Ambient 3D Engine (Reference Inspired) ─────
   useEffect(() => {
     if (!enable3D || !threeCanvasRef.current) return;
     const container = threeCanvasRef.current;
     container.innerHTML = '';
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 24;
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 32);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
-    const group = new THREE.Group();
-    scene.add(group);
+    const mainGroup = new THREE.Group();
+    scene.add(mainGroup);
 
-    const particleCount = 850;
-    const pos = new Float32Array(particleCount * 3);
+    // 1. Three Glowing Orbital Curves (Reference Inspired)
+    const orbitMaterials = [
+      new THREE.LineBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.35 }),
+      new THREE.LineBasicMaterial({ color: 0x818cf8, transparent: true, opacity: 0.25 }),
+      new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.2 }),
+    ];
+
+    const orbitGroup = new THREE.Group();
+    mainGroup.add(orbitGroup);
+
+    const createOrbitalRing = (radiusX: number, radiusY: number, mat: THREE.LineBasicMaterial, rotX: number, rotY: number) => {
+      const curve = new THREE.EllipseCurve(0, 0, radiusX, radiusY, 0, 2 * Math.PI, false, 0);
+      const points = curve.getPoints(120);
+      const geom = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(geom, mat);
+      line.rotation.x = rotX;
+      line.rotation.y = rotY;
+      return line;
+    };
+
+    const ring1 = createOrbitalRing(16, 12, orbitMaterials[0], Math.PI / 3, Math.PI / 6);
+    const ring2 = createOrbitalRing(22, 16, orbitMaterials[1], -Math.PI / 4, Math.PI / 4);
+    const ring3 = createOrbitalRing(28, 20, orbitMaterials[2], Math.PI / 6, -Math.PI / 5);
+    orbitGroup.add(ring1);
+    orbitGroup.add(ring2);
+    orbitGroup.add(ring3);
+
+    // 2. Cosmic Stardust Particles
+    const particleCount = 750;
+    const particlePositions = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount; i++) {
-      const u = Math.random() * Math.PI * 2;
-      const v = Math.random() * Math.PI * 2;
-      const R = 8.5 + (Math.random() - 0.5) * 2;
-      const r = 2.2 + (Math.random() - 0.5) * 1;
-      pos[i * 3] = (R + r * Math.cos(v)) * Math.cos(u);
-      pos[i * 3 + 1] = (R + r * Math.cos(v)) * Math.sin(u);
-      pos[i * 3 + 2] = r * Math.sin(v);
+      particlePositions[i * 3] = (Math.random() - 0.5) * 60;
+      particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 45;
+      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 40;
     }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const material = new THREE.PointsMaterial({
+    const particleGeom = new THREE.BufferGeometry();
+    particleGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    const particleMat = new THREE.PointsMaterial({
       size: 0.12,
-      color: theme === 'dark' ? 0x818cf8 : 0x0284c7,
+      color: theme === 'dark' ? 0xc084fc : 0x7c3aed,
       transparent: true,
       opacity: theme === 'dark' ? 0.45 : 0.35,
     });
-    const points = new THREE.Points(geometry, material);
-    group.add(points);
+    const particleSystem = new THREE.Points(particleGeom, particleMat);
+    mainGroup.add(particleSystem);
 
+    // 3. Floating Geometric Wireframe Objects
+    const geoGroup = new THREE.Group();
+    mainGroup.add(geoGroup);
+
+    // Floating Icosahedron
+    const icoGeom = new THREE.IcosahedronGeometry(2.4, 1);
+    const icoMat = new THREE.MeshStandardMaterial({
+      color: 0xa855f7,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.35,
+      roughness: 0.2,
+      metalness: 0.8,
+    });
+    const icoMesh = new THREE.Mesh(icoGeom, icoMat);
+    icoMesh.position.set(-18, 9, -6);
+    geoGroup.add(icoMesh);
+
+    // Floating Torus
+    const torusGeom = new THREE.TorusGeometry(3.5, 0.2, 16, 90);
+    const torusMat = new THREE.MeshStandardMaterial({
+      color: 0x8b5cf6,
+      transparent: true,
+      opacity: 0.38,
+      roughness: 0.15,
+      metalness: 0.85,
+    });
+    const torusMesh = new THREE.Mesh(torusGeom, torusMat);
+    torusMesh.position.set(19, -8, -8);
+    torusMesh.rotation.x = Math.PI / 3;
+    geoGroup.add(torusMesh);
+
+    // Floating Sphere Accent
+    const sphereGeom = new THREE.SphereGeometry(1.6, 32, 32);
+    const sphereMat = new THREE.MeshStandardMaterial({
+      color: 0x6366f1,
+      roughness: 0.1,
+      metalness: 0.9,
+      transparent: true,
+      opacity: 0.3,
+    });
+    const sphereMesh = new THREE.Mesh(sphereGeom, sphereMat);
+    sphereMesh.position.set(-14, -10, -4);
+    geoGroup.add(sphereMesh);
+
+    // 4. Subtle Purple Ambient & Point Lighting
+    const ambientLight = new THREE.AmbientLight(0x2e1065, 1.4);
+    scene.add(ambientLight);
+
+    const purpleLight = new THREE.PointLight(0xa855f7, 2.8, 60);
+    purpleLight.position.set(15, 12, 10);
+    scene.add(purpleLight);
+
+    const indigoLight = new THREE.PointLight(0x6366f1, 2.0, 50);
+    indigoLight.position.set(-15, -12, 8);
+    scene.add(indigoLight);
+
+    // 5. Interactive Mouse-Responsive Parallax
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Animation loop
     let animId: number;
+    let clock = new THREE.Clock();
+
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      group.rotation.y += 0.002;
-      group.rotation.x += 0.001;
+      const delta = clock.getDelta();
+
+      if (!prefersReducedMotion) {
+        // Orbit rotations
+        orbitGroup.rotation.z += 0.0012;
+        ring1.rotation.y += 0.0008;
+        ring2.rotation.x += 0.0006;
+
+        // Geometric float & spin
+        icoMesh.rotation.x += 0.004;
+        icoMesh.rotation.y += 0.006;
+        torusMesh.rotation.y += 0.005;
+        torusMesh.rotation.z += 0.003;
+        sphereMesh.position.y += Math.sin(clock.getElapsedTime() * 1.5) * 0.005;
+
+        // Particles gentle drift
+        particleSystem.rotation.y += 0.0004;
+
+        // Smooth mouse parallax lerp
+        targetX = mouseX * 0.25;
+        targetY = mouseY * 0.2;
+        mainGroup.rotation.y += (targetX - mainGroup.rotation.y) * 0.04;
+        mainGroup.rotation.x += (-targetY - mainGroup.rotation.x) * 0.04;
+      }
+
       renderer.render(scene, camera);
     };
     animate();
@@ -547,10 +705,18 @@ export default function ZenClockApp() {
 
     return () => {
       cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
-      geometry.dispose();
-      material.dispose();
+      particleGeom.dispose();
+      particleMat.dispose();
+      icoGeom.dispose();
+      icoMat.dispose();
+      torusGeom.dispose();
+      torusMat.dispose();
+      sphereGeom.dispose();
+      sphereMat.dispose();
+      orbitMaterials.forEach((m) => m.dispose());
     };
   }, [enable3D, theme]);
 
@@ -582,7 +748,7 @@ export default function ZenClockApp() {
 
   // Timer Progress
   const timerProgress = duration > 0 ? (duration - remaining) / duration : 0;
-  const circleRadius = 110;
+  const circleRadius = 105;
   const circleCircumference = 2 * Math.PI * circleRadius;
   const strokeOffset = circleCircumference - (1 - timerProgress) * circleCircumference;
 
@@ -594,118 +760,36 @@ export default function ZenClockApp() {
   const currentQuote = MOTIVATIONAL_QUOTES[quoteIndex] || MOTIVATIONAL_QUOTES[0];
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between bg-slate-900 text-slate-100 transition-colors duration-300 select-none">
-      {/* 3D Three.js Ambient Particle Halo */}
+    <div className="relative w-screen h-screen overflow-hidden flex items-center justify-center p-2 sm:p-3 md:p-4 lg:p-6 bg-[#07080c] text-slate-100 transition-colors duration-300 select-none">
+      {/* Three.js Ambient Particle & Orbit Background */}
       {enable3D && (
-        <div ref={threeCanvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-70" />
+        <div ref={threeCanvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-80" />
       )}
 
-      {/* TOP HEADER - Glassmorphic Navigation */}
-      <header className="relative z-20 w-full px-4 sm:px-6 py-2.5 liquid-header flex items-center justify-between shrink-0 shadow-sm">
-        {/* Brand & Logo */}
-        <div className="flex items-center space-x-2.5">
-          <div className="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-white/20 shadow-md shadow-purple-500/30 flex items-center justify-center bg-black/50 shrink-0">
-            <img src="./logo.png" alt="ZenClock Logo" className="w-full h-full object-contain" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:via-slate-200 dark:to-indigo-300 bg-clip-text text-transparent">
-              ZenClock
-            </h1>
-          </div>
-        </div>
-
-        {/* Live System Clock & Cultural Date Badge */}
-        <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full liquid-btn text-xs font-mono">
-          <Clock className="w-3.5 h-3.5 text-sky-500" />
-          <span className="font-semibold tabular text-slate-800 dark:text-slate-200">
-            {use24Hour ? clockDigital24 : `${clockDigital12} ${ampm}`}
-          </span>
-          <span className="text-slate-400 dark:text-slate-600">•</span>
-          <span className="text-slate-600 dark:text-slate-300">{formattedDate}</span>
-          <span className="text-slate-400 dark:text-slate-600">•</span>
-          <span className="text-emerald-600 dark:text-emerald-400 font-medium">🇧🇩 {banglaDate}</span>
-          <span className="text-slate-400 dark:text-slate-600">•</span>
-          <span className="text-indigo-600 dark:text-indigo-300 font-medium">🌙 {hijriDate}</span>
-        </div>
-
-        {/* Header Right Controls */}
-        <div className="flex items-center space-x-1.5 sm:space-x-2">
-          {/* Design Style Selector Switch */}
-          <div className="flex items-center liquid-btn rounded-xl p-0.5 text-xs">
-            {DESIGN_STYLES.map((style) => (
-              <button
-                key={style.id}
-                onClick={() => setDesignStyle(style.id)}
-                className={cn(
-                  'px-2.5 py-1 rounded-lg font-medium transition-all text-xs',
-                  designStyle === style.id
-                    ? 'bg-white dark:bg-slate-800 text-sky-500 font-semibold shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                )}
-                title={style.tag}
-              >
-                {style.name.split(' ')[0]}
-              </button>
-            ))}
-          </div>
-
-          {/* Mute / Unmute Button */}
-          <button
-            onClick={() => {
-              const nextMuted = !isMuted;
-              setIsMuted(nextMuted);
-              updateVolume(volume, nextMuted);
-            }}
-            className={cn(
-              'p-2 rounded-xl liquid-btn transition-all',
-              isMuted
-                ? 'bg-rose-500/20 border-rose-500/40 text-rose-500'
-                : 'text-slate-700 dark:text-slate-300'
-            )}
-            title={isMuted ? 'Unmute Audio [M]' : 'Mute Audio [M]'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-
-          {/* Preferences & Sounds Modal Trigger */}
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="p-2 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 transition-all"
-            title="Sound & Audio Settings"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-
-          {/* Dark / Light Mode Toggle */}
-          <button
-            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-            className="p-2 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 transition-all"
-            title="Toggle Dark / Light Theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-          </button>
-
-          {/* Fullscreen Toggle */}
-          <button
-            onClick={toggleFullscreen}
-            className="hidden sm:flex p-2 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 transition-all"
-            title={isFullscreen ? 'Exit Fullscreen [ESC]' : 'Enter Fullscreen'}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-        </div>
-      </header>
-
-      {/* MAIN SINGLE-PAGE NO-SCROLL DASHBOARD */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 min-h-0">
+      {/* ───── FLOATING DASHBOARD CANVAS (Reference Inspired) ───── */}
+      <div className="dashboard-outer-canvas w-full max-w-[1480px] h-full max-h-[940px] rounded-[28px] sm:rounded-[36px] xl:rounded-[42px] flex flex-col justify-between overflow-hidden relative z-10 shadow-2xl">
         
-        {/* LEFT / CENTER PANEL: MASTER FOCUS TIMER & STUDY SUITE (7 Cols on desktop) */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl liquid-glass relative min-h-0">
-          
-          {/* Mode Switcher Bar */}
-          <div className="flex items-center space-x-1.5 p-1 rounded-2xl liquid-btn max-w-full overflow-x-auto shrink-0">
+        {/* TOP BAR / NAVIGATION PILL */}
+        <header className="relative z-20 w-full px-4 sm:px-6 py-2.5 liquid-header flex items-center justify-between shrink-0">
+          {/* Brand & Hourglass Logo */}
+          <div className="flex items-center space-x-2.5">
+            <div className="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-purple-500/40 shadow-lg shadow-purple-500/20 flex items-center justify-center bg-black/70 shrink-0">
+              <img src="./logo.png" alt="ZenClock Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex items-baseline space-x-1.5">
+              <h1 className="text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent">
+                ZenClock
+              </h1>
+              <span className="text-[10px] font-mono font-bold text-purple-400 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/20">
+                PRO
+              </span>
+            </div>
+          </div>
+
+          {/* Segmented Timer Mode Switcher Pills (Inspired by Reference Navigation) */}
+          <div className="hidden md:flex items-center space-x-1 p-1 rounded-2xl liquid-btn text-xs font-medium">
             {[
-              { id: 'countdown', label: 'Custom Timer', icon: Sparkles },
+              { id: 'countdown', label: 'Custom', icon: Sparkles },
               { id: 'pomodoro', label: 'Pomodoro (25m)', icon: Flame },
               { id: 'deep_work', label: 'Deep Work (50m)', icon: Zap },
               { id: 'short_break', label: 'Short Break (5m)', icon: Coffee },
@@ -718,163 +802,396 @@ export default function ZenClockApp() {
                   key={m.id}
                   onClick={() => switchMode(m.id as TimerMode)}
                   className={cn(
-                    'flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all',
+                    'flex items-center space-x-1.5 py-1 px-3 rounded-xl transition-all text-xs font-semibold',
                     isActive
-                      ? 'bg-white dark:bg-slate-800 text-sky-500 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-purple-600/30 text-purple-200 border border-purple-500/40 shadow-sm shadow-purple-500/25'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                   )}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5 text-purple-400" />
                   <span>{m.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* DYNAMIC DESIGN STYLE DISPLAY */}
-          <div className="flex-1 flex flex-col items-center justify-center my-2 sm:my-3 relative">
-            {/* 1. ZEN MINIMALIST STYLE */}
-            {designStyle === 'zen' && (
-              <div className="relative flex items-center justify-center">
-                <div
+          {/* Header Action Controls */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
+            {/* Design Style Switcher */}
+            <div className="flex items-center liquid-btn rounded-xl p-0.5 text-xs">
+              {DESIGN_STYLES.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => setDesignStyle(style.id)}
                   className={cn(
-                    'absolute inset-4 rounded-full blur-2xl transition-all duration-1000',
-                    isTimerRunning ? 'bg-sky-500/20 scale-105' : 'bg-sky-500/5 scale-95'
+                    'px-2.5 py-1 rounded-lg font-medium transition-all text-[11px]',
+                    designStyle === style.id
+                      ? 'bg-purple-600/40 text-purple-200 font-semibold border border-purple-500/30 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
                   )}
-                />
-                <div className="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
-                  <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 260 260">
-                    <circle
-                      cx="130"
-                      cy="130"
-                      r={circleRadius}
-                      className="stroke-slate-300/40 dark:stroke-slate-800/70"
-                      strokeWidth="5"
-                      fill="transparent"
+                  title={style.tag}
+                >
+                  {style.name.split(' ')[0]}
+                </button>
+              ))}
+            </div>
+
+            {/* Mute Audio Toggle */}
+            <button
+              onClick={() => {
+                const nextMuted = !isMuted;
+                setIsMuted(nextMuted);
+                updateVolume(volume, nextMuted);
+              }}
+              className={cn(
+                'p-2 rounded-xl liquid-btn transition-all',
+                isMuted
+                  ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
+                  : 'text-slate-300 hover:text-white'
+              )}
+              title={isMuted ? 'Unmute Audio [M]' : 'Mute Audio [M]'}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-purple-400" />}
+            </button>
+
+            {/* Preferences Modal Trigger */}
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all"
+              title="Sound & Preferences"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
+
+            {/* Dark / Light Toggle */}
+            <button
+              onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+              className="p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all"
+              title="Toggle Theme"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-purple-600" />}
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={toggleFullscreen}
+              className="hidden sm:flex p-2 rounded-xl liquid-btn text-slate-300 hover:text-white transition-all"
+              title={isFullscreen ? 'Exit Fullscreen [ESC]' : 'Enter Fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+
+            {/* Hero Purple Glow Action Button (Inspired by "Send" in Reference) */}
+            <button
+              onClick={!isTimerRunning && !isTimerPaused ? startTimer : isTimerRunning ? pauseTimer : resumeTimer}
+              className="purple-glow-btn px-4 sm:px-5 py-2 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition-all"
+            >
+              {!isTimerRunning && !isTimerPaused && <Play className="w-3.5 h-3.5 fill-current" />}
+              {isTimerRunning && <Pause className="w-3.5 h-3.5 fill-current" />}
+              {isTimerPaused && <Play className="w-3.5 h-3.5 fill-current" />}
+              <span>{!isTimerRunning && !isTimerPaused ? 'START' : isTimerRunning ? 'PAUSE' : 'RESUME'}</span>
+            </button>
+          </div>
+        </header>
+
+        {/* ───── MAIN 3-COLUMN MULTI-PANEL DASHBOARD GRID ───── */}
+        <main className="relative z-10 flex-1 w-full p-3 sm:p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 overflow-hidden min-h-0">
+          
+          {/* COLUMN 1 (4 Cols): FOCUS TELEMETRY & HERO VISUAL TIMER */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-3 min-h-0">
+            
+            {/* Card 1: Focus Telemetry & Analytics Wave (Like "Analytics Today" in reference) */}
+            <div className="p-3.5 sm:p-4 rounded-3xl liquid-glass flex flex-col justify-between shrink-0">
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Focus Analytics</h3>
+                    <span className="text-[10px] text-slate-400">Today&apos;s Momentum</span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+                  <TrendingUp className="w-3 h-3" />
+                  <span>+18.4%</span>
+                </div>
+              </div>
+
+              {/* Glowing SVG Wave Sparkline Chart */}
+              <div className="my-2.5 h-12 w-full relative flex items-center">
+                <svg className="w-full h-full overflow-visible" viewBox="0 0 280 48" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="wave-grad-1" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#38bdf8" />
+                      <stop offset="50%" stop-color="#a855f7" />
+                      <stop offset="100%" stop-color="#ec4899" />
+                    </linearGradient>
+                    <linearGradient id="wave-grad-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.3" />
+                      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.1" />
+                    </linearGradient>
+                  </defs>
+                  {/* Background Soft Wave */}
+                  <path
+                    d="M 0,38 C 40,42 70,22 110,26 C 150,30 180,14 220,20 C 250,25 270,12 280,18"
+                    fill="none"
+                    stroke="#8b5cf6"
+                    strokeWidth="1.5"
+                    strokeOpacity="0.4"
+                    strokeDasharray="4 4"
+                  />
+                  {/* Primary Glowing Curve */}
+                  <path
+                    d="M 0,26 C 35,8 65,36 105,18 C 145,2 175,32 215,14 C 245,2 265,22 280,8"
+                    fill="none"
+                    stroke="url(#wave-grad-1)"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                  />
+                  {/* Active Anchor Points */}
+                  <circle cx="105" cy="18" r="3" fill="#a855f7" />
+                  <circle cx="215" cy="14" r="3" fill="#38bdf8" />
+                </svg>
+              </div>
+
+              {/* Cycle & Status Badges */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-xs">
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[11px] text-slate-400">Cycle:</span>
+                  <div className="flex items-center space-x-1">
+                    {[1, 2, 3, 4].map((step) => (
+                      <div
+                        key={step}
+                        className={cn(
+                          'h-1.5 rounded-full transition-all',
+                          step === studySessionNumber
+                            ? 'w-4 bg-purple-500 shadow-sm shadow-purple-500/50'
+                            : step < studySessionNumber
+                            ? 'w-2 bg-emerald-500'
+                            : 'w-2 bg-slate-700'
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="text-[11px] font-mono font-semibold text-purple-300">
+                  {completedPomodoros} {completedPomodoros === 1 ? 'Session' : 'Sessions'} Done
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Centerpiece Visual Countdown Timer (Like the 3D Sphere card in reference) */}
+            <div className="flex-1 p-4 rounded-3xl liquid-glass flex flex-col justify-between items-center relative min-h-0">
+              
+              {/* Status Header */}
+              <div className="w-full flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
+                <span className="flex items-center space-x-1.5 text-purple-300">
+                  <Activity className="w-3.5 h-3.5 animate-pulse text-purple-400" />
+                  <span>TIMER // {timerMode.toUpperCase()}</span>
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 font-semibold">
+                  {isTimerRunning ? 'FLOW ACTIVE' : isTimerPaused ? 'PAUSED' : 'READY'}
+                </span>
+              </div>
+
+              {/* Active Layout Centerpiece */}
+              <div className="flex-1 flex flex-col items-center justify-center my-2 relative">
+                {/* 1. Zen Minimal (Breathing Violet Ring) */}
+                {designStyle === 'zen' && (
+                  <div className="relative flex items-center justify-center">
+                    <div
+                      className={cn(
+                        'absolute inset-4 rounded-full blur-2xl transition-all duration-1000',
+                        isTimerRunning ? 'bg-purple-600/30 scale-105' : 'bg-purple-600/10 scale-95'
+                      )}
                     />
-                    <circle
-                      cx="130"
-                      cy="130"
-                      r={circleRadius}
-                      stroke="#38bdf8"
-                      strokeWidth="6"
-                      strokeDasharray={circleCircumference}
-                      strokeDashoffset={strokeOffset}
-                      strokeLinecap="round"
-                      fill="transparent"
-                      className="transition-[stroke-dashoffset] duration-200 ease-linear"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+                      <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 250 250">
+                        <circle
+                          cx="125"
+                          cy="125"
+                          r={circleRadius}
+                          className="stroke-slate-800/80"
+                          strokeWidth="5"
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="125"
+                          cy="125"
+                          r={circleRadius}
+                          stroke="url(#timer-purple-grad)"
+                          strokeWidth="7"
+                          strokeDasharray={circleCircumference}
+                          strokeDashoffset={strokeOffset}
+                          strokeLinecap="round"
+                          fill="transparent"
+                          className="transition-[stroke-dashoffset] duration-200 ease-linear"
+                        />
+                        <defs>
+                          <linearGradient id="timer-purple-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#c084fc" />
+                            <stop offset="50%" stopColor="#a855f7" />
+                            <stop offset="100%" stopColor="#6366f1" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span
+                          onClick={() => {
+                            const sp = splitSeconds(duration);
+                            setCustomHours(sp.hours);
+                            setCustomMinutes(sp.minutes);
+                            setCustomSeconds(sp.seconds);
+                            setIsCustomPickerOpen(true);
+                          }}
+                          className="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight tabular text-white cursor-pointer hover:text-purple-300 transition-colors drop-shadow-[0_2px_12px_rgba(168,85,247,0.4)]"
+                          title="Click to edit duration"
+                        >
+                          {formatTime(remaining)}
+                        </span>
+                        <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase mt-1">
+                          {isTimerRunning ? 'Focused' : 'Tap to edit'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Studio Modern (Radial Bauhaus Dial) */}
+                {designStyle === 'studio' && (
+                  <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+                    <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 260 260">
+                      {Array.from({ length: 48 }).map((_, i) => {
+                        const rad = (i / 48) * 360 * (Math.PI / 180);
+                        const isDone = i <= Math.floor(timerProgress * 48);
+                        const isMajor = i % 4 === 0;
+                        const r1 = isMajor ? 102 : 108;
+                        const r2 = 118;
+                        const x1 = 130 + r1 * Math.cos(rad);
+                        const y1 = 130 + r1 * Math.sin(rad);
+                        const x2 = 130 + r2 * Math.cos(rad);
+                        const y2 = 130 + r2 * Math.sin(rad);
+                        return (
+                          <line
+                            key={i}
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke={isDone ? '#a855f7' : 'rgba(148, 163, 184, 0.25)'}
+                            strokeWidth={isMajor ? 3 : 1.5}
+                            strokeLinecap="round"
+                          />
+                        );
+                      })}
+                    </svg>
+                    <div className="absolute inset-8 rounded-full bg-slate-950/70 border border-purple-500/20 backdrop-blur-xl flex flex-col items-center justify-center">
+                      <span
+                        onClick={() => setIsCustomPickerOpen(true)}
+                        className="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight tabular text-purple-300 cursor-pointer"
+                      >
+                        {formatTime(remaining)}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400 tracking-wider mt-1">
+                        {Math.round(timerProgress * 100)}% COMPLETE
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Cyber Neon (HUD Container) */}
+                {designStyle === 'cyber' && (
+                  <div className="w-full max-w-xs p-4 rounded-2xl bg-slate-950/80 border border-purple-500/40 shadow-[0_0_24px_rgba(168,85,247,0.25)] flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-purple-400 pb-1 border-b border-purple-500/20">
+                      <span>SYS://FOCUS_CORE</span>
+                      <span>STATUS: {isTimerRunning ? 'RUN' : 'HALT'}</span>
+                    </div>
+                    <div className="text-center my-3">
+                      <span
+                        onClick={() => setIsCustomPickerOpen(true)}
+                        className="text-4xl sm:text-5xl font-mono font-black text-purple-200 drop-shadow-[0_0_12px_rgba(168,85,247,0.7)] cursor-pointer tabular"
+                      >
+                        {formatTime(remaining)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-purple-900/60">
+                      <div
+                        className="bg-purple-500 h-full shadow-[0_0_10px_#a855f7] transition-all duration-200"
+                        style={{ width: `${timerProgress * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Spatial 3D (Gyroscopic Halo) */}
+                {designStyle === 'spatial' && (
+                  <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-gradient-to-br from-purple-500/15 via-slate-950/70 to-indigo-500/15 border border-purple-500/30 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center p-4">
+                    <div className="w-5 h-5 text-purple-400 animate-spin mb-1">
+                      <Layers className="w-5 h-5" />
+                    </div>
                     <span
-                      onClick={() => {
-                        const sp = splitSeconds(duration);
-                        setCustomHours(sp.hours);
-                        setCustomMinutes(sp.minutes);
-                        setCustomSeconds(sp.seconds);
-                        setIsCustomPickerOpen(true);
-                      }}
-                      className="text-5xl sm:text-6xl font-mono font-bold tracking-tight tabular cursor-pointer hover:opacity-85 transition-opacity"
-                      title="Click to set custom duration"
+                      onClick={() => setIsCustomPickerOpen(true)}
+                      className="text-4xl sm:text-5xl font-mono font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] cursor-pointer tabular"
                     >
                       {formatTime(remaining)}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-1">
-                      {isTimerRunning ? 'Flow State' : isTimerPaused ? 'Paused' : 'Ready'}
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-purple-300/80 mt-1">
+                      Spatial Active
                     </span>
                   </div>
-                </div>
+                )}
               </div>
-            )}
 
-            {/* 2. STUDIO MODERN STYLE */}
-            {designStyle === 'studio' && (
-              <div className="relative w-56 h-56 sm:w-68 sm:h-68 flex items-center justify-center">
-                <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 280 280">
-                  {Array.from({ length: 48 }).map((_, i) => {
-                    const angle = (i / 48) * 360;
-                    const rad = (angle * Math.PI) / 180;
-                    const isActive = i <= Math.floor(timerProgress * 48);
-                    const isMajor = i % 4 === 0;
-                    const r1 = isMajor ? 114 : 118;
-                    const r2 = 130;
-                    return (
-                      <line
-                        key={i}
-                        x1={140 + r1 * Math.cos(rad)}
-                        y1={140 + r1 * Math.sin(rad)}
-                        x2={140 + r2 * Math.cos(rad)}
-                        y2={140 + r2 * Math.sin(rad)}
-                        stroke={isActive ? '#f59e0b' : 'currentColor'}
-                        className={isActive ? 'stroke-amber-500' : 'stroke-slate-300/40 dark:stroke-slate-800'}
-                        strokeWidth={isMajor ? 3 : 1.5}
-                        strokeLinecap="round"
-                      />
-                    );
-                  })}
-                </svg>
-                <div className="absolute inset-10 rounded-full bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border border-white/30 dark:border-white/10 flex flex-col items-center justify-center shadow-lg">
-                  <span
-                    onClick={() => {
-                      const sp = splitSeconds(duration);
-                      setCustomHours(sp.hours);
-                      setCustomMinutes(sp.minutes);
-                      setCustomSeconds(sp.seconds);
-                      setIsCustomPickerOpen(true);
-                    }}
-                    className="text-5xl sm:text-6xl font-mono font-extrabold tracking-tight tabular text-amber-500 cursor-pointer"
+              {/* Bottom Quick Preset Pills */}
+              <div className="flex items-center space-x-1 sm:space-x-1.5 overflow-x-auto max-w-full py-1 shrink-0">
+                {QUICK_PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    onClick={() => addQuickSeconds(p.sec)}
+                    className="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-300 liquid-btn hover:text-purple-300 hover:border-purple-500/40 transition-all shrink-0"
                   >
-                    {formatTime(remaining)}
-                  </span>
-                  <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-slate-400 mt-1">
-                    {Math.round(timerProgress * 100)}% COMPLETE
-                  </span>
-                </div>
+                    {p.label}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+          </div>
 
-            {/* 3. CYBER NEON HUD */}
-            {designStyle === 'cyber' && (
-              <div className="w-full max-w-sm p-5 rounded-2xl bg-slate-950/80 backdrop-blur-xl border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative">
-                <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-cyan-400" />
-                <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-cyan-400" />
-                <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-cyan-400" />
-                <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-cyan-400" />
-
-                <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400 mb-2">
-                  <span>SYS://CYBER_TIMER</span>
-                  <span>{isTimerRunning ? 'STATUS: EXECUTING' : 'STATUS: STANDBY'}</span>
-                </div>
-
-                <div className="text-center my-2">
-                  <span
-                    onClick={() => {
-                      const sp = splitSeconds(duration);
-                      setCustomHours(sp.hours);
-                      setCustomMinutes(sp.minutes);
-                      setCustomSeconds(sp.seconds);
-                      setIsCustomPickerOpen(true);
-                    }}
-                    className="text-5xl sm:text-6xl font-mono font-black text-cyan-300 drop-shadow-[0_0_15px_rgba(6,182,212,0.6)] cursor-pointer tabular"
-                  >
-                    {formatTime(remaining)}
-                  </span>
-                </div>
-
-                <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-cyan-900/60 mt-3">
-                  <div
-                    className="bg-cyan-400 h-full shadow-[0_0_10px_#22d3ee] transition-all duration-200"
-                    style={{ width: `${timerProgress * 100}%` }}
-                  />
-                </div>
+          {/* COLUMN 2 (4 Cols): SESSION CONFIGURATION & MOTIVATIONAL WISDOM */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-3 min-h-0">
+            
+            {/* Card 3: Session Controls & Sound Chamber (Like Center Form in Reference) */}
+            <div className="p-4 rounded-3xl liquid-glass flex flex-col justify-between space-y-3 shrink-0">
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+                <h3 className="text-xs font-bold text-white tracking-wide flex items-center space-x-1.5">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Session Controls</span>
+                </h3>
+                <span className="text-[10px] font-mono text-slate-400">Audio &amp; Presets</span>
               </div>
-            )}
 
-            {/* 4. SPATIAL 3D GLASS ORB */}
-            {designStyle === 'spatial' && (
-              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-indigo-500/10 via-slate-900/60 to-purple-500/10 border border-white/20 dark:border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center p-4">
-                <Orbit className="w-5 h-5 text-indigo-400 animate-spin mb-1" style={{ animationDuration: '10s' }} />
-                <span
+              {/* Master Start / Pause / Reset Buttons Row */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={resetTimer}
+                  className="p-3 rounded-2xl liquid-btn text-slate-300 hover:text-white transition-all active:scale-95"
+                  title="Reset Timer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={!isTimerRunning && !isTimerPaused ? startTimer : isTimerRunning ? pauseTimer : resumeTimer}
+                  className="flex-1 py-3 px-4 rounded-2xl purple-glow-btn font-extrabold text-sm flex items-center justify-center space-x-2 transition-all active:scale-95"
+                >
+                  {!isTimerRunning && !isTimerPaused && <Play className="w-4 h-4 fill-current" />}
+                  {isTimerRunning && <Pause className="w-4 h-4 fill-current" />}
+                  {isTimerPaused && <Play className="w-4 h-4 fill-current" />}
+                  <span>{!isTimerRunning && !isTimerPaused ? 'START FOCUS' : isTimerRunning ? 'PAUSE' : 'RESUME'}</span>
+                </button>
+
+                <button
                   onClick={() => {
                     const sp = splitSeconds(duration);
                     setCustomHours(sp.hours);
@@ -882,493 +1199,346 @@ export default function ZenClockApp() {
                     setCustomSeconds(sp.seconds);
                     setIsCustomPickerOpen(true);
                   }}
-                  className="text-5xl sm:text-6xl font-mono font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] cursor-pointer tabular"
+                  className="p-3 rounded-2xl liquid-btn text-slate-300 hover:text-white transition-all active:scale-95"
+                  title="Configure Custom Time"
                 >
-                  {formatTime(remaining)}
-                </span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-indigo-300/80 mt-1">
-                  {isTimerRunning ? 'Spatial Active' : 'Spatial Idle'}
-                </span>
-              </div>
-            )}
-
-            {/* Study Cycle Indicator (When in Pomodoro mode) */}
-            {timerMode === 'pomodoro' && (
-              <div className="mt-2.5 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-                <span>Cycle:</span>
-                <div className="flex items-center space-x-1.5">
-                  {[1, 2, 3, 4].map((step) => (
-                    <div
-                      key={step}
-                      className={cn(
-                        'h-2 rounded-full transition-all',
-                        step === studySessionNumber
-                          ? 'w-5 bg-sky-500'
-                          : step < studySessionNumber
-                          ? 'w-2 bg-emerald-500'
-                          : 'w-2 bg-slate-300 dark:bg-slate-700'
-                      )}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={() => setStudySessionNumber((s) => (s >= 4 ? 1 : s + 1))}
-                  className="ml-2 hover:text-sky-500 transition-colors p-1"
-                  title="Advance session"
-                >
-                  <SkipForward className="w-3.5 h-3.5" />
+                  <Clock className="w-4 h-4" />
                 </button>
               </div>
-            )}
-          </div>
 
-          {/* MOTIVATIONAL QUOTE GLASS WIDGET (Cycles every 1 minute) */}
-          <div className="w-full px-3.5 py-2 my-1 rounded-2xl liquid-btn flex items-center justify-between text-xs transition-all shrink-0">
-            <div className="flex items-center space-x-2.5 min-w-0 flex-1">
-              <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
-                <Quote className="w-3.5 h-3.5" />
+              {/* Active Sound Card & Volume Slider */}
+              <div className="p-3 rounded-2xl liquid-btn space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1.5">
+                    <Bell className="w-3.5 h-3.5 text-purple-400" />
+                    <span className="font-semibold text-slate-200">
+                      {SOUND_DEFINITIONS.find((s) => s.id === selectedSound)?.name}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handlePreviewSound(selectedSound)}
+                    className="px-2 py-0.5 rounded-lg text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
+                  >
+                    {previewingId === selectedSound ? 'Stop' : 'Preview'}
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2 pt-1">
+                  <span className="text-[10px] font-mono text-slate-400 w-12">Vol: {Math.round(volume * 100)}%</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={volume}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      setVolume(v);
+                      updateVolume(v, isMuted);
+                    }}
+                    className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  />
+                </div>
               </div>
-              <div className={cn('flex-1 min-w-0 transition-opacity duration-300', quoteFade ? 'opacity-100' : 'opacity-0')}>
-                <p className="italic text-slate-700 dark:text-slate-200 truncate text-[11px] sm:text-xs">
+            </div>
+
+            {/* Card 4: Motivational Engine & Wisdom (Like Social Friends Card in Reference) */}
+            <div className="flex-1 p-4 rounded-3xl liquid-glass flex flex-col justify-between min-h-0">
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08] shrink-0">
+                <div className="flex items-center space-x-1.5">
+                  <Quote className="w-3.5 h-3.5 text-purple-400" />
+                  <span className="text-xs font-bold text-white tracking-wide">Wisdom Feed</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[9px] font-mono text-slate-400 bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.08]">
+                    60s
+                  </span>
+                  <button
+                    onClick={handleNextQuote}
+                    className="p-1 rounded-lg hover:bg-purple-500/20 text-slate-400 hover:text-purple-300 transition-colors"
+                    title="Next Quote"
+                  >
+                    <SkipForward className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Quote Body */}
+              <div className="my-auto py-2 quote-fade">
+                <p className="italic text-slate-200 text-xs sm:text-sm leading-relaxed">
                   &ldquo;{currentQuote.text}&rdquo;
                 </p>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
+                <span className="text-[11px] text-purple-400 font-medium block mt-2">
                   — {currentQuote.author}
                 </span>
               </div>
-            </div>
-            <div className="flex items-center space-x-1.5 pl-2 shrink-0">
-              <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 bg-white/20 dark:bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/10" title="Updates every 60s">
-                60s
-              </span>
-              <button
-                onClick={handleNextQuote}
-                className="p-1 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                title="Next Quote"
-              >
-                <SkipForward className="w-3.5 h-3.5" />
-              </button>
+
+              {/* Session Progress Note */}
+              <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-400 shrink-0">
+                <span>Next quote in auto-rotation</span>
+                <span className="font-mono text-purple-300">Quote #{quoteIndex + 1}/50</span>
+              </div>
             </div>
           </div>
 
-          {/* TIMER ACTION CONTROLS */}
-          <div className="flex flex-col items-center space-y-2.5 shrink-0 pt-1">
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              {/* Reset */}
-              <button
-                onClick={resetTimer}
-                className="p-3 sm:p-3.5 rounded-2xl liquid-btn text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800 transition-all active:scale-95 shadow-sm"
-                title="Reset Timer"
-              >
-                <RotateCcw className="w-5 h-5" />
-              </button>
-
-              {/* Primary Start / Pause / Resume */}
-              {!isTimerRunning && !isTimerPaused && (
-                <button
-                  onClick={startTimer}
-                  className="py-3 px-8 sm:px-10 rounded-2xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-sky-500/25 transition-all transform hover:scale-105 active:scale-95"
-                >
-                  <Play className="w-5 h-5 fill-current" />
-                  <span>START</span>
-                </button>
-              )}
-
-              {isTimerRunning && (
-                <button
-                  onClick={pauseTimer}
-                  className="py-3 px-8 sm:px-10 rounded-2xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-amber-500/25 transition-all active:scale-95"
-                >
-                  <Pause className="w-5 h-5 fill-current" />
-                  <span>PAUSE</span>
-                </button>
-              )}
-
-              {isTimerPaused && (
-                <button
-                  onClick={resumeTimer}
-                  className="py-3 px-8 sm:px-10 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base flex items-center space-x-2 shadow-lg shadow-emerald-500/25 transition-all transform hover:scale-105 active:scale-95"
-                >
-                  <Play className="w-5 h-5 fill-current" />
-                  <span>RESUME</span>
-                </button>
-              )}
-
-              {/* Set Custom Time Button */}
-              <button
-                onClick={() => {
-                  const sp = splitSeconds(duration);
-                  setCustomHours(sp.hours);
-                  setCustomMinutes(sp.minutes);
-                  setCustomSeconds(sp.seconds);
-                  setIsCustomPickerOpen(true);
-                }}
-                className="p-3 sm:p-3.5 rounded-2xl liquid-btn text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800 transition-all active:scale-95 shadow-sm"
-                title="Configure Custom Duration"
-              >
-                <SlidersHorizontal className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Quick Add Presets Chips */}
-            <div className="flex items-center space-x-1 sm:space-x-1.5 overflow-x-auto max-w-full py-0.5">
-              {QUICK_PRESETS.map((p) => (
-                <button
-                  key={p.label}
-                  onClick={() => addQuickSeconds(p.sec)}
-                  className="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 liquid-btn hover:text-sky-500 transition-all shrink-0"
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: ANALOG CLOCK + STOPWATCH (5 Cols on desktop) */}
-        <div className="lg:col-span-5 flex flex-col justify-between gap-3 sm:gap-4 min-h-0">
-          
-          {/* TOP RIGHT: LIVE ANALOG CLOCK MODULE (Glassmorphic) */}
-          <div className="p-3.5 sm:p-4 rounded-3xl liquid-glass flex items-center justify-between min-h-0">
-            {/* SVG Analog Clock Face */}
-            <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
-              <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-md">
-                {/* Clock Bezel */}
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="95"
-                  className="fill-white/40 dark:fill-slate-950/70 stroke-white/40 dark:stroke-slate-700/80"
-                  strokeWidth="2.5"
-                />
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="91"
-                  className="fill-white/60 dark:fill-slate-900/60"
-                />
-
-                {/* Hour Ticks */}
-                {Array.from({ length: 12 }).map((_, i) => {
-                  const rad = (i * 30 * Math.PI) / 180;
-                  const x1 = 100 + 78 * Math.sin(rad);
-                  const y1 = 100 - 78 * Math.cos(rad);
-                  const x2 = 100 + 87 * Math.sin(rad);
-                  const y2 = 100 - 87 * Math.cos(rad);
-                  return (
-                    <line
-                      key={i}
-                      x1={x1}
-                      y1={y1}
-                      x2={x2}
-                      y2={y2}
-                      stroke="currentColor"
-                      className="stroke-slate-400 dark:stroke-slate-500"
-                      strokeWidth={i % 3 === 0 ? 2.5 : 1.2}
-                      strokeLinecap="round"
-                    />
-                  );
-                })}
-
-                {/* Date Complication Badge */}
-                <g transform="translate(132, 91)">
-                  <rect
-                    width="24"
-                    height="18"
-                    rx="3"
-                    className="fill-slate-200/80 dark:fill-slate-800"
+          {/* COLUMN 3 (4 Cols): OBSERVATORY (ANALOG CLOCK) & CHRONOGRAPH */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-3 min-h-0">
+            
+            {/* Card 5: Live Observatory (Analog Clock - Like Wallet in Reference) */}
+            <div className="p-3.5 sm:p-4 rounded-3xl liquid-glass flex items-center justify-between min-h-0 shrink-0">
+              {/* Analog Clock Dial */}
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
+                <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-lg">
+                  {/* Outer Bezel */}
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="95"
+                    className="fill-black/60 stroke-purple-500/30"
+                    strokeWidth="2"
                   />
-                  <text
-                    x="12"
-                    y="13"
-                    textAnchor="middle"
-                    className="text-[9px] font-bold fill-sky-500 tabular"
-                  >
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="90"
+                    className="fill-slate-950/80 stroke-white/[0.06]"
+                    strokeWidth="1"
+                  />
+
+                  {/* Dial Hour Ticks */}
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const rad = (i * 30 * Math.PI) / 180;
+                    const x1 = 100 + 76 * Math.sin(rad);
+                    const y1 = 100 - 76 * Math.cos(rad);
+                    const x2 = 100 + 86 * Math.sin(rad);
+                    const y2 = 100 - 86 * Math.cos(rad);
+                    return (
+                      <line
+                        key={i}
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        stroke={i % 3 === 0 ? '#c084fc' : '#475569'}
+                        strokeWidth={i % 3 === 0 ? 2.5 : 1.2}
+                        strokeLinecap="round"
+                      />
+                    );
+                  })}
+
+                  {/* Date Display Box */}
+                  <rect x="132" y="91" width="24" height="18" rx="3" className="fill-slate-900 border border-purple-500/40" />
+                  <text x="144" y="104" textAnchor="middle" className="text-[9px] font-bold fill-purple-400 tabular">
                     {dayOfMonth}
                   </text>
-                </g>
 
-                {/* Hour Hand */}
-                <g transform={`rotate(${hrAngle}, 100, 100)`}>
-                  <line
-                    x1="100"
-                    y1="110"
-                    x2="100"
-                    y2="52"
-                    stroke="currentColor"
-                    className="stroke-slate-800 dark:stroke-slate-200"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                  />
-                </g>
+                  {/* Hour Hand */}
+                  <g transform={`rotate(${hrAngle}, 100, 100)`}>
+                    <line x1="100" y1="110" x2="100" y2="52" stroke="#f8fafc" strokeWidth="4" strokeLinecap="round" />
+                  </g>
+                  {/* Minute Hand */}
+                  <g transform={`rotate(${minAngle}, 100, 100)`}>
+                    <line x1="100" y1="115" x2="100" y2="30" stroke="#cbd5e1" strokeWidth="2.8" strokeLinecap="round" />
+                  </g>
+                  {/* Second Hand (Continuous Sweep) */}
+                  <g transform={`rotate(${secAngle}, 100, 100)`}>
+                    <line x1="100" y1="120" x2="100" y2="22" stroke="#ec4899" strokeWidth="1.5" strokeLinecap="round" />
+                    <circle cx="100" cy="112" r="3" fill="#ec4899" />
+                  </g>
 
-                {/* Minute Hand */}
-                <g transform={`rotate(${minAngle}, 100, 100)`}>
-                  <line
-                    x1="100"
-                    y1="115"
-                    x2="100"
-                    y2="30"
-                    stroke="currentColor"
-                    className="stroke-slate-700 dark:stroke-slate-300"
-                    strokeWidth="2.8"
-                    strokeLinecap="round"
-                  />
-                </g>
+                  {/* Pinion */}
+                  <circle cx="100" cy="100" r="4" className="fill-purple-400" />
+                  <circle cx="100" cy="100" r="1.5" fill="#ec4899" />
+                </svg>
+              </div>
 
-                {/* Second Hand */}
-                <g transform={`rotate(${secAngle}, 100, 100)`}>
-                  <line
-                    x1="100"
-                    y1="120"
-                    x2="100"
-                    y2="22"
-                    stroke="#ef4444"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="100" cy="112" r="3" fill="#ef4444" />
-                </g>
+              {/* Time Readout & Telemetry */}
+              <div className="flex-1 pl-4 flex flex-col justify-center space-y-1.5 min-w-0">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 flex items-center space-x-1">
+                  <Globe className="w-3 h-3 text-purple-400" />
+                  <span className="truncate">{timezone}</span>
+                </span>
 
-                {/* Center Pinion */}
-                <circle cx="100" cy="100" r="4" className="fill-slate-900 dark:fill-white" />
-                <circle cx="100" cy="100" r="1.5" fill="#ef4444" />
-              </svg>
+                <div className="text-xl sm:text-2xl font-mono font-bold tracking-tight tabular text-white">
+                  {use24Hour ? clockDigital24 : clockDigital12}
+                  {!use24Hour && (
+                    <span className="text-xs font-semibold text-purple-400 ml-1.5">{ampm}</span>
+                  )}
+                </div>
+
+                <div className="text-xs font-medium text-slate-300">
+                  {formattedDate}
+                </div>
+
+                {/* Sweep & 12/24H Toggles */}
+                <div className="flex items-center space-x-2 pt-1">
+                  <button
+                    onClick={() => setSmoothSweep((s) => !s)}
+                    className="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-300 hover:text-purple-300 transition-colors"
+                  >
+                    {smoothSweep ? 'Sweep' : 'Tick'}
+                  </button>
+                  <button
+                    onClick={() => setUse24Hour((h) => !h)}
+                    className="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-300 hover:text-purple-300 transition-colors"
+                  >
+                    {use24Hour ? '24H' : '12H'}
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Analog Clock Telemetry & Cultural Dates */}
-            <div className="flex-1 pl-4 flex flex-col justify-center space-y-1.5 min-w-0">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 flex items-center space-x-1">
-                <Globe className="w-3 h-3 text-sky-500" />
-                <span className="truncate">{timezone}</span>
-              </span>
-
-              <div className="text-xl sm:text-2xl font-mono font-bold tracking-tight tabular text-slate-900 dark:text-white">
-                {use24Hour ? clockDigital24 : clockDigital12}
-                {!use24Hour && (
-                  <span className="text-xs font-semibold text-sky-500 ml-1.5">{ampm}</span>
+            {/* Card 6: Precision Chronograph & Laps (Like Programs in Reference) */}
+            <div className="flex-1 p-3.5 sm:p-4 rounded-3xl liquid-glass flex flex-col justify-between min-h-0">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-white/[0.08] shrink-0">
+                <div className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <Watch className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Chronograph</span>
+                </div>
+                {laps.length > 0 && (
+                  <button
+                    onClick={copyLapsToClipboard}
+                    className="text-[11px] text-slate-400 hover:text-purple-300 flex items-center space-x-1 transition-colors"
+                    title="Copy Laps"
+                  >
+                    {copiedLaps ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedLaps ? 'Copied' : 'Copy'}</span>
+                  </button>
                 )}
               </div>
 
-              <div className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                {formattedDate}
+              {/* Stopwatch Large Display */}
+              <div className="flex items-baseline justify-center my-2 shrink-0">
+                <span className="text-4xl sm:text-5xl font-mono font-bold tracking-tight tabular text-white">
+                  {swFormatted.main}
+                </span>
+                <span className="text-xl sm:text-2xl font-mono font-semibold text-purple-400 ml-1.5 tabular">
+                  .{swFormatted.cs}
+                </span>
               </div>
 
-              {/* Cultural Calendar Badges (Bangla & Hijri) */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <div className="px-2 py-0.5 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] font-medium flex items-center space-x-1">
-                  <span>🇧🇩</span>
-                  <span className="font-mono">{banglaDate}</span>
-                </div>
-                <div className="px-2 py-0.5 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 text-indigo-700 dark:text-indigo-300 text-[10px] font-medium flex items-center space-x-1">
-                  <span>🌙</span>
-                  <span className="font-mono">{hijriDate}</span>
-                </div>
-              </div>
-
-              {/* Sweep & 12/24H Toggles */}
-              <div className="flex items-center space-x-2 pt-1">
-                <button
-                  onClick={() => setSmoothSweep((s) => !s)}
-                  className="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
-                >
-                  {smoothSweep ? 'Sweep' : 'Tick'}
-                </button>
-                <button
-                  onClick={() => setUse24Hour((h) => !h)}
-                  className="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
-                >
-                  {use24Hour ? '24H' : '12H'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* BOTTOM RIGHT: PRECISION STOPWATCH & LAPS MODULE (Glassmorphic) */}
-          <div className="flex-1 p-3.5 sm:p-4 rounded-3xl liquid-glass flex flex-col justify-between min-h-0">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-white/15 dark:border-white/10 shrink-0">
-              <div className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                <Watch className="w-3.5 h-3.5 text-sky-500" />
-                <span>Chronograph</span>
-              </div>
-              {laps.length > 0 && (
-                <button
-                  onClick={copyLapsToClipboard}
-                  className="text-[11px] text-slate-400 hover:text-sky-500 flex items-center space-x-1 transition-colors"
-                  title="Copy Laps"
-                >
-                  {copiedLaps ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedLaps ? 'Copied' : 'Copy'}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Stopwatch Large Display */}
-            <div className="flex items-baseline justify-center my-2 shrink-0">
-              <span className="text-4xl sm:text-5xl font-mono font-bold tracking-tight tabular">
-                {swFormatted.main}
-              </span>
-              <span className="text-xl sm:text-2xl font-mono font-semibold text-sky-500 ml-1.5 tabular">
-                .{swFormatted.cs}
-              </span>
-            </div>
-
-            {/* Stopwatch Action Controls */}
-            <div className="flex items-center justify-center space-x-2 py-1 shrink-0">
-              {!isSwRunning && !isSwPaused && (
-                <button
-                  onClick={startStopwatch}
-                  className="flex-1 py-1.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all"
-                >
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Start</span>
-                </button>
-              )}
-
-              {isSwRunning && (
-                <>
+              {/* Stopwatch Action Controls */}
+              <div className="flex items-center justify-center space-x-2 py-1 shrink-0">
+                {!isSwRunning && !isSwPaused && (
                   <button
-                    onClick={recordLap}
-                    className="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
-                  >
-                    <Flag className="w-3.5 h-3.5 text-sky-500" />
-                    <span>Lap</span>
-                  </button>
-                  <button
-                    onClick={pauseStopwatch}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
-                  >
-                    <Pause className="w-3.5 h-3.5 fill-current" />
-                    <span>Pause</span>
-                  </button>
-                </>
-              )}
-
-              {isSwPaused && (
-                <>
-                  <button
-                    onClick={resetStopwatch}
-                    className="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Reset</span>
-                  </button>
-                  <button
-                    onClick={resumeStopwatch}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
+                    onClick={startStopwatch}
+                    className="flex-1 py-1.5 px-4 rounded-xl purple-glow-btn text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Resume</span>
+                    <span>Start</span>
                   </button>
-                </>
-              )}
-            </div>
+                )}
 
-            {/* Scrollable Lap Records List */}
-            <div className="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-white/10 dark:divide-white/[0.06] text-xs font-mono mt-1">
-              {laps.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-slate-400 text-[11px] italic">
-                  Press &quot;Lap&quot; while running to record splits
-                </div>
-              ) : (
-                laps.map((lap) => {
-                  const isFastest = lap.id === fastestLapId;
-                  const isSlowest = lap.id === slowestLapId;
-                  const split = formatStopwatch(lap.lapTimeMs);
-                  const total = formatStopwatch(lap.overallTimeMs);
-                  return (
-                    <div
-                      key={lap.id}
-                      className={cn(
-                        'flex items-center justify-between py-1 px-1 transition-colors',
-                        isFastest
-                          ? 'text-emerald-500 font-semibold'
-                          : isSlowest
-                          ? 'text-rose-500 font-semibold'
-                          : 'text-slate-700 dark:text-slate-300'
-                      )}
+                {isSwRunning && (
+                  <>
+                    <button
+                      onClick={recordLap}
+                      className="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-200 font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
                     >
-                      <span className="text-slate-400 w-10">#{lap.lapNumber}</span>
-                      <span className="tabular">+{split.main}.{split.cs}</span>
-                      <span className="text-slate-400 tabular text-[11px]">{total.main}.{total.cs}</span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
+                      <Flag className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Lap</span>
+                    </button>
+                    <button
+                      onClick={pauseStopwatch}
+                      className="flex-1 py-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
+                    >
+                      <Pause className="w-3.5 h-3.5 fill-current" />
+                      <span>Pause</span>
+                    </button>
+                  </>
+                )}
 
-      {/* COMPACT FOOTER STATUS BAR - Glassmorphic */}
-      <footer className="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/15 dark:border-white/10 liquid-header flex items-center justify-between text-xs text-slate-400 shrink-0">
-        <div className="flex items-center space-x-3">
-          {/* Weather Widget (IP-based) */}
-          {weather && (
-            <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full liquid-btn text-[11px] font-medium">
-              <span className="text-sm">{weather.icon}</span>
-              <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{weather.temp}°C</span>
-              <span className="text-slate-400 dark:text-slate-500">•</span>
-              <span className="text-slate-600 dark:text-slate-300 truncate max-w-[80px]">{weather.city}</span>
-            </div>
-          )}
-          <span className="hidden sm:inline">[Space] / [ESC] Dismiss Alert</span>
-          <span className="hidden sm:inline">•</span>
-          <span className="hidden sm:inline">[M] Mute Sound</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span>
-            Alarm: <strong className="text-slate-700 dark:text-slate-200">{SOUND_DEFINITIONS.find((s) => s.id === selectedSound)?.name}</strong>
-          </span>
-          <span>•</span>
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="hover:text-sky-500 underline underline-offset-2 transition-colors font-medium"
-          >
-            Preferences
-          </button>
-        </div>
-      </footer>
+                {isSwPaused && (
+                  <>
+                    <button
+                      onClick={resetStopwatch}
+                      className="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-300 font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Reset</span>
+                    </button>
+                    <button
+                      onClick={resumeStopwatch}
+                      className="flex-1 py-1.5 px-3 rounded-xl purple-glow-btn text-white font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Resume</span>
+                    </button>
+                  </>
+                )}
+              </div>
 
-      {/* SOUND ACTIVATION PERMISSION BANNER (First Visit) */}
-      {!soundPermissionGranted && (
-        <div className="fixed bottom-12 right-6 z-40 max-w-sm p-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-sky-500/40 shadow-2xl backdrop-blur-2xl animate-fadeIn">
-          <div className="flex items-start space-x-3">
-            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500">
-              <Bell className="w-5 h-5 animate-bounce" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Enable Alarm Sound
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Grant audio permission so alarms and chimes ring when your timer completes.
-              </p>
-              <div className="flex items-center space-x-2 mt-3">
-                <button
-                  onClick={() => setSoundPermissionGranted(true)}
-                  className="px-2.5 py-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
-                >
-                  Dismiss
-                </button>
-                <button
-                  onClick={() => {
-                    unlockAudio();
-                    setSoundPermissionGranted(true);
-                    previewSound(selectedSound, volume * 0.7);
-                  }}
-                  className="px-3 py-1 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-sm transition-all"
-                >
-                  Enable Sound
-                </button>
+              {/* Scrollable Lap Records List */}
+              <div className="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-white/[0.06] text-xs font-mono mt-1">
+                {laps.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-slate-500 text-[11px] italic">
+                    Press &quot;Lap&quot; while running to record splits
+                  </div>
+                ) : (
+                  laps.map((lap) => {
+                    const isFastest = lap.id === fastestLapId;
+                    const isSlowest = lap.id === slowestLapId;
+                    const split = formatStopwatch(lap.lapTimeMs);
+                    const total = formatStopwatch(lap.overallTimeMs);
+                    return (
+                      <div
+                        key={lap.id}
+                        className={cn(
+                          'flex items-center justify-between py-1 px-1 transition-colors',
+                          isFastest
+                            ? 'text-emerald-400 font-semibold'
+                            : isSlowest
+                            ? 'text-rose-400 font-semibold'
+                            : 'text-slate-300'
+                        )}
+                      >
+                        <span className="text-slate-400 w-10">#{lap.lapNumber}</span>
+                        <span className="tabular">+{split.main}.{split.cs}</span>
+                        <span className="text-slate-500 tabular text-[11px]">{total.main}.{total.cs}</span>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </main>
 
-      {/* FULLSCREEN RED/WHITE BLINKING ALARM ALERT */}
+        {/* ───── BOTTOM FOOTER & TELEMETRY PILL (Reference Inspired) ───── */}
+        <footer className="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/[0.08] liquid-header flex items-center justify-between text-xs text-slate-400 shrink-0">
+          {/* Left Telemetry Pill (Like "Trusted Us" pill in reference) */}
+          <div className="flex items-center space-x-2.5">
+            {/* IP Weather */}
+            {weather && (
+              <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full liquid-btn text-[11px] font-medium text-slate-200">
+                <span className="text-sm">{weather.icon}</span>
+                <span className="font-mono font-bold text-white">{weather.temp}°C</span>
+                <span className="text-slate-500">•</span>
+                <span className="text-slate-300 truncate max-w-[90px]">{weather.city}</span>
+              </div>
+            )}
+
+            {/* Cultural Calendars */}
+            <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full liquid-btn text-[11px] font-medium text-slate-300">
+              <span className="text-emerald-400">🇧🇩 {banglaDate}</span>
+              <span className="text-slate-500">•</span>
+              <span className="text-purple-300">🌙 {hijriDate}</span>
+            </div>
+          </div>
+
+          {/* Right Keyboard Shortcuts */}
+          <div className="flex items-center space-x-3 text-[11px] text-slate-400">
+            <span className="hidden md:inline">[Space] Start / Dismiss</span>
+            <span className="hidden md:inline">•</span>
+            <span className="hidden md:inline">[ESC] Close / Fullscreen</span>
+            <span className="hidden md:inline">•</span>
+            <span className="hidden md:inline">[M] Mute</span>
+            <span>Alarm: <strong className="text-purple-300 font-semibold">{SOUND_DEFINITIONS.find((s) => s.id === selectedSound)?.name}</strong></span>
+          </div>
+        </footer>
+      </div>
+
+      {/* ───── FULLSCREEN RED/WHITE BLINKING ALARM ALERT ───── */}
       {isAlarmActive && (
         <>
           <div className="fixed inset-0 z-50 pointer-events-none alarm-active opacity-90 transition-opacity" />
@@ -1401,32 +1571,32 @@ export default function ZenClockApp() {
         </>
       )}
 
-      {/* CUSTOM TIMER PICKER MODAL */}
+      {/* ───── CUSTOM TIMER PICKER MODAL ───── */}
       {isCustomPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-sm rounded-3xl bg-white/90 dark:bg-slate-900/95 border border-white/30 dark:border-white/10 p-6 shadow-2xl backdrop-blur-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-white/20 dark:border-white/10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="w-full max-w-sm rounded-3xl bg-[#0d0f18] border border-purple-500/30 p-6 shadow-2xl backdrop-blur-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-sky-500" />
-                <h3 className="font-bold text-base">Set Custom Timer</h3>
+                <Clock className="w-4 h-4 text-purple-400" />
+                <h3 className="font-bold text-base text-white">Set Custom Duration</h3>
               </div>
               <button
                 onClick={() => setIsCustomPickerOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1 rounded-full text-slate-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Stepper Inputs for Hours, Minutes, Seconds */}
+            {/* Spinner Selectors */}
             <div className="flex items-center justify-center space-x-4 my-6">
               {/* Hours */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setCustomHours((h) => Math.min(23, h + 1))}
-                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
+                  className="p-1.5 rounded-lg liquid-btn text-slate-300 hover:text-white"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                 </button>
                 <input
                   type="number"
@@ -1434,26 +1604,26 @@ export default function ZenClockApp() {
                   max="23"
                   value={customHours}
                   onChange={(e) => setCustomHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
-                  className="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular"
+                  className="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent text-white tabular"
                 />
                 <button
                   onClick={() => setCustomHours((h) => Math.max(0, h - 1))}
-                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
+                  className="p-1.5 rounded-lg liquid-btn text-slate-300 hover:text-white"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-4 h-4" />
                 </button>
                 <span className="text-[10px] font-semibold text-slate-400 uppercase mt-1">Hours</span>
               </div>
 
-              <span className="text-2xl font-mono font-bold text-slate-300 dark:text-slate-700 pb-5">:</span>
+              <span className="text-2xl font-mono font-bold text-slate-500 pb-5">:</span>
 
               {/* Minutes */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setCustomMinutes((m) => (m >= 59 ? 0 : m + 1))}
-                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
+                  className="p-1.5 rounded-lg liquid-btn text-slate-300 hover:text-white"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                 </button>
                 <input
                   type="number"
@@ -1461,26 +1631,26 @@ export default function ZenClockApp() {
                   max="59"
                   value={customMinutes}
                   onChange={(e) => setCustomMinutes(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                  className="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular"
+                  className="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent text-white tabular"
                 />
                 <button
                   onClick={() => setCustomMinutes((m) => (m <= 0 ? 59 : m - 1))}
-                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
+                  className="p-1.5 rounded-lg liquid-btn text-slate-300 hover:text-white"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-4 h-4" />
                 </button>
                 <span className="text-[10px] font-semibold text-slate-400 uppercase mt-1">Mins</span>
               </div>
 
-              <span className="text-2xl font-mono font-bold text-slate-300 dark:text-slate-700 pb-5">:</span>
+              <span className="text-2xl font-mono font-bold text-slate-500 pb-5">:</span>
 
               {/* Seconds */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setCustomSeconds((s) => (s >= 59 ? 0 : s + 1))}
-                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
+                  className="p-1.5 rounded-lg liquid-btn text-slate-300 hover:text-white"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                 </button>
                 <input
                   type="number"
@@ -1488,31 +1658,28 @@ export default function ZenClockApp() {
                   max="59"
                   value={customSeconds}
                   onChange={(e) => setCustomSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                  className="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular"
+                  className="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent text-white tabular"
                 />
                 <button
                   onClick={() => setCustomSeconds((s) => (s <= 0 ? 59 : s - 1))}
-                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
+                  className="p-1.5 rounded-lg liquid-btn text-slate-300 hover:text-white"
                 >
-                  <Minus className="w-3.5 h-3.5" />
+                  <Minus className="w-4 h-4" />
                 </button>
                 <span className="text-[10px] font-semibold text-slate-400 uppercase mt-1">Secs</span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 pt-2 border-t border-white/[0.08]">
               <button
                 onClick={() => setIsCustomPickerOpen(false)}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-white/40 dark:hover:bg-slate-800"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  const total = customHours * 3600 + customMinutes * 60 + customSeconds;
-                  applyCustomDuration(total || 60);
-                }}
-                className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/25"
+                onClick={applyCustomDuration}
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold purple-glow-btn text-white transition-all shadow-md"
               >
                 Apply Duration
               </button>
@@ -1521,36 +1688,29 @@ export default function ZenClockApp() {
         </div>
       )}
 
-      {/* PREFERENCES & SOUND SELECTOR MODAL */}
+      {/* ───── SOUNDS & PREFERENCES MODAL ───── */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-md rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-white/30 dark:border-white/10 p-6 shadow-2xl backdrop-blur-2xl flex flex-col max-h-[85vh]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/20 dark:border-white/10 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-3xl bg-[#0d0f18] border border-purple-500/30 p-6 shadow-2xl backdrop-blur-2xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] shrink-0">
               <div className="flex items-center space-x-2">
-                <SlidersHorizontal className="w-4 h-4 text-sky-500" />
-                <h3 className="font-bold text-base">Sound & Preferences</h3>
+                <SlidersHorizontal className="w-4 h-4 text-purple-400" />
+                <h3 className="font-bold text-base text-white">Sound &amp; Preferences</h3>
               </div>
               <button
-                onClick={() => {
-                  stopPreview();
-                  setPreviewingId(null);
-                  setIsSettingsOpen(false);
-                }}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                onClick={() => setIsSettingsOpen(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto py-4 space-y-4">
-              {/* Master Volume */}
-              <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-slate-800/60 border border-white/20 dark:border-white/10 space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="flex items-center space-x-1.5">
-                    <Volume2 className="w-4 h-4 text-sky-500" />
-                    <span>Master Alarm Volume</span>
-                  </span>
-                  <span className="font-mono text-slate-400">{Math.round(volume * 100)}%</span>
+              {/* Volume Slider */}
+              <div className="p-3.5 rounded-2xl liquid-btn space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
+                  <span>Master Volume</span>
+                  <span className="font-mono text-purple-300">{Math.round(volume * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -1563,86 +1723,61 @@ export default function ZenClockApp() {
                     setVolume(v);
                     updateVolume(v, isMuted);
                   }}
-                  className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
                 />
               </div>
 
-              {/* 3D Visualizer Toggle */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/40 dark:bg-slate-800/60 border border-white/20 dark:border-white/10">
-                <div className="flex items-center space-x-2">
-                  <Orbit className="w-4 h-4 text-sky-500" />
-                  <div>
-                    <div className="text-xs font-bold">Three.js 3D Particle Halo</div>
-                    <div className="text-[10px] text-slate-400">Subtle floating ambient sphere</div>
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={enable3D}
-                  onChange={(e) => setEnable3D(e.target.checked)}
-                  className="rounded text-sky-500 focus:ring-sky-500 w-4 h-4 cursor-pointer"
-                />
-              </div>
-
-              {/* Alarm Sounds List (User Uploads + Classics) */}
+              {/* 12 Sounds List */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">
-                  Alarm Sounds ({SOUND_DEFINITIONS.length} Available)
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                  Alarm Sounds ({SOUND_DEFINITIONS.length})
                 </span>
                 {SOUND_DEFINITIONS.map((sound) => {
-                  const isSelected = selectedSound === sound.id;
-                  const isPlayingThis = previewingId === sound.id;
+                  const isSelected = sound.id === selectedSound;
+                  const isPreviewing = previewingId === sound.id;
+                  const isCustom = sound.id.startsWith('custom_alarm');
 
                   return (
                     <div
                       key={sound.id}
-                      onClick={() => {
-                        setSelectedSound(sound.id);
-                        unlockAudio();
-                      }}
+                      onClick={() => setSelectedSound(sound.id)}
                       className={cn(
-                        'flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all',
+                        'flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer',
                         isSelected
-                          ? 'bg-sky-500/10 border-sky-500 text-sky-500 shadow-sm'
-                          : 'bg-white/40 dark:bg-slate-800/60 border-white/20 dark:border-white/10 hover:border-slate-300 dark:hover:border-slate-700'
+                          ? 'bg-purple-600/20 border-purple-500/50 text-purple-200 shadow-sm'
+                          : 'liquid-btn border-white/[0.06] text-slate-300 hover:border-purple-500/25'
                       )}
                     >
                       <div className="flex-1 min-w-0 pr-2">
                         <div className="flex items-center space-x-1.5">
-                          <span className="text-xs font-bold truncate">{sound.name}</span>
-                          {sound.id.startsWith('custom_alarm') && (
-                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                          <span className="text-xs font-bold truncate text-white">{sound.name}</span>
+                          {isCustom && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
                               Imported
                             </span>
                           )}
                           {isSelected && (
-                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-600 dark:text-sky-400">
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/30 text-purple-200">
                               Active
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-slate-400 truncate mt-0.5">{sound.description}</div>
+                        <p className="text-[10px] text-slate-400 truncate mt-0.5">{sound.description}</p>
                       </div>
 
                       <button
-                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          unlockAudio();
-                          if (isPlayingThis) {
-                            stopPreview();
-                            setPreviewingId(null);
-                          } else {
-                            setPreviewingId(sound.id);
-                            previewSound(sound.id, volume);
-                            setTimeout(() => {
-                              setPreviewingId((curr) => (curr === sound.id ? null : curr));
-                            }, 3500);
-                          }
+                          handlePreviewSound(sound.id);
                         }}
-                        className="py-1 px-2.5 rounded-lg text-xs font-medium bg-white/60 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-sky-500 hover:text-white transition-all shadow-sm shrink-0"
+                        className={cn(
+                          'px-2.5 py-1 text-xs font-medium rounded-lg transition-all shrink-0',
+                          isPreviewing
+                            ? 'bg-rose-500/30 text-rose-300 border border-rose-500/40'
+                            : 'liquid-btn text-slate-300 hover:text-white'
+                        )}
                       >
-                        {isPlayingThis ? 'Stop' : 'Preview'}
+                        {isPreviewing ? 'Stop' : 'Preview'}
                       </button>
                     </div>
                   );
@@ -1650,14 +1785,10 @@ export default function ZenClockApp() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-white/20 dark:border-white/10 flex justify-end shrink-0">
+            <div className="pt-3 border-t border-white/[0.08] flex justify-end shrink-0">
               <button
-                onClick={() => {
-                  stopPreview();
-                  setPreviewingId(null);
-                  setIsSettingsOpen(false);
-                }}
-                className="py-2 px-5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition-all shadow-sm"
+                onClick={() => setIsSettingsOpen(false)}
+                className="py-2 px-5 rounded-xl purple-glow-btn text-white font-semibold text-xs transition-all"
               >
                 Done
               </button>

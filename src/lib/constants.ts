@@ -16,10 +16,10 @@ export const SOUND_DEFINITIONS: SoundDefinition[] = [
 ];
 
 export const DESIGN_STYLES: { id: DesignStyle; name: string; tag: string }[] = [
-  { id: 'zen', name: 'Zen Minimal', tag: 'Breathing ring & clean lines' },
-  { id: 'studio', name: 'Studio Modern', tag: 'Bauhaus segmented dial & amber' },
-  { id: 'cyber', name: 'Cyber Neon', tag: 'HUD framing & glowing cyan' },
-  { id: 'spatial', name: 'Spatial 3D', tag: 'Interactive 3D particle halo' },
+  { id: 'zen', name: 'Zen Minimal', tag: 'Breathing violet ring & specular glass' },
+  { id: 'studio', name: 'Studio Modern', tag: 'Bauhaus segmented tick dial & violet accent' },
+  { id: 'cyber', name: 'Cyber Neon', tag: 'Futuristic HUD framing & purple glow' },
+  { id: 'spatial', name: 'Spatial 3D', tag: 'Gyroscopic 3D orbital particle halo' },
 ];
 
 export const QUICK_PRESETS = [

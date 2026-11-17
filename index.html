@@ -284,6 +284,14 @@
             PRO
           </span>
         </div>
+
+        <!-- Corner Weather HUD Pill (Header Left/Corner) -->
+        <div id="header-weather-widget" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl liquid-btn text-[11px] font-medium text-slate-200 border border-white/10 shadow-sm ml-1 sm:ml-2">
+          <span id="header-weather-icon" class="text-sm">🌤️</span>
+          <span id="header-weather-temp" class="font-mono font-bold text-white">24°C</span>
+          <span class="text-slate-500">•</span>
+          <span id="header-weather-city" class="text-slate-300 truncate max-w-[85px] sm:max-w-[120px]">Sylhet (Local)</span>
+        </div>
       </div>
 
       <!-- Segmented Timer Mode Switcher Pills -->
@@ -529,7 +537,7 @@
             </div>
             <div class="flex items-center space-x-2 pt-1">
               <span id="card-volume-label" class="text-[10px] font-mono text-slate-400 w-12">Vol: 85%</span>
-              <input id="card-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200" />
+              <input id="card-volume-slider" oninput="setMasterVolume(this.value)" onchange="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.01" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200" />
             </div>
           </div>
         </div>
@@ -652,12 +660,12 @@
     <footer class="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/[0.08] liquid-header flex items-center justify-between text-xs text-slate-400 shrink-0">
       <!-- Left Telemetry Pill -->
       <div class="flex items-center space-x-2.5">
-        <!-- Weather Widget -->
-        <div id="weather-widget" class="hidden items-center space-x-1.5 px-3 py-1 rounded-full liquid-btn text-[11px] font-medium text-slate-200">
-          <span id="weather-icon" class="text-sm">☀️</span>
-          <span id="weather-temp" class="font-mono font-bold text-white">--°C</span>
+        <!-- Weather Widget (Visible by default, dynamic update) -->
+        <div id="weather-widget" class="flex items-center space-x-1.5 px-3 py-1 rounded-full liquid-btn text-[11px] font-medium text-slate-200">
+          <span id="weather-icon" class="text-sm">🌤️</span>
+          <span id="weather-temp" class="font-mono font-bold text-white">24°C</span>
           <span class="text-slate-500">•</span>
-          <span id="weather-city" class="text-slate-300 truncate max-w-[90px]">--</span>
+          <span id="weather-city" class="text-slate-300 truncate max-w-[90px]">Sylhet (Local)</span>
         </div>
 
         <!-- Cultural Calendar Badges -->
@@ -744,7 +752,7 @@
           <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
             <span id="settings-volume-label">Volume: 85%</span>
           </div>
-          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200" />
+          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" onchange="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.01" value="0.85" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200" />
         </div>
 
         <!-- Section 3: Sounds List -->
@@ -1027,6 +1035,7 @@
     let masterVolume = 0.85;
     let isMuted = false;
     let audioCtx = null;
+    let masterGainNode = null;
     let activeAudioElem = null;
     let activePreviewElem = null;
     let alarmSynthInterval = null;
@@ -1039,20 +1048,32 @@
       return audioCtx;
     }
 
+    function getMasterGain(ctx) {
+      if (!masterGainNode) {
+        masterGainNode = ctx.createGain();
+        const effective = isMuted ? 0 : Math.max(0, Math.min(1, masterVolume));
+        masterGainNode.gain.setValueAtTime(effective, ctx.currentTime);
+        masterGainNode.connect(ctx.destination);
+      }
+      return masterGainNode;
+    }
+
     function playToneFallback(freq1, freq2, duration, type='sine') {
       if (isMuted) return;
       try {
         const ctx = getAudioCtx();
         const now = ctx.currentTime;
         const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const toneGain = ctx.createGain();
+        const master = getMasterGain(ctx);
+
         osc.type = type;
         osc.frequency.setValueAtTime(freq1, now);
         if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, now + duration * 0.4);
-        gain.gain.setValueAtTime(masterVolume * 0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        toneGain.gain.setValueAtTime(0.35, now);
+        toneGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.connect(toneGain);
+        toneGain.connect(master);
         osc.start(now);
         osc.stop(now + duration + 0.05);
       } catch (e) {}
@@ -1410,6 +1431,19 @@
 
     function toggleMute() {
       isMuted = !isMuted;
+      const effective = isMuted ? 0 : masterVolume;
+      if (activeAudioElem) {
+        try { activeAudioElem.volume = effective; } catch(e) {}
+      }
+      if (activePreviewElem) {
+        try { activePreviewElem.volume = effective; } catch(e) {}
+      }
+      if (audioCtx) {
+        try {
+          const mg = getMasterGain(audioCtx);
+          mg.gain.setValueAtTime(effective, audioCtx.currentTime);
+        } catch(e) {}
+      }
       const unmuted = document.getElementById('mute-icon-unmuted');
       const muted = document.getElementById('mute-icon-muted');
       if (unmuted && muted) {
@@ -1525,13 +1559,66 @@
       document.getElementById('card-sound-name').textContent = s.name;
       openSettingsModal();
     }
+    let lastChirpTime = 0;
+    function playChirpFallback() {
+      if (isMuted) return;
+      const now = Date.now();
+      if (now - lastChirpTime < 90) return;
+      lastChirpTime = now;
+      if (activeAudioElem && !activeAudioElem.paused) return;
+      if (activePreviewElem && !activePreviewElem.paused) return;
+      try {
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const mg = getMasterGain(ctx);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, t);
+        osc.frequency.exponentialRampToValueAtTime(1320, t + 0.05);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+        osc.connect(gain);
+        gain.connect(mg);
+        osc.start(t);
+        osc.stop(t + 0.07);
+      } catch(e) {}
+    }
+
     function setMasterVolume(v) {
       masterVolume = parseFloat(v);
+      if (isNaN(masterVolume)) masterVolume = 0.85;
+      masterVolume = Math.max(0, Math.min(1, masterVolume));
+
+      const effective = isMuted ? 0 : masterVolume;
+      if (activeAudioElem) {
+        try { activeAudioElem.volume = effective; } catch(e) {}
+      }
+      if (activePreviewElem) {
+        try { activePreviewElem.volume = effective; } catch(e) {}
+      }
+      if (audioCtx) {
+        try {
+          const mg = getMasterGain(audioCtx);
+          mg.gain.setValueAtTime(effective, audioCtx.currentTime);
+        } catch(e) {}
+      }
+
       const txt = `Vol: ${Math.round(masterVolume * 100)}%`;
-      document.getElementById('settings-volume-label').textContent = txt;
-      document.getElementById('card-volume-label').textContent = txt;
-      document.getElementById('card-volume-slider').value = v;
-      document.getElementById('settings-volume-slider').value = v;
+      const sLabel = document.getElementById('settings-volume-label');
+      const cLabel = document.getElementById('card-volume-label');
+      if (sLabel) sLabel.textContent = `Volume: ${Math.round(masterVolume * 100)}%`;
+      if (cLabel) cLabel.textContent = txt;
+      const cSlider = document.getElementById('card-volume-slider');
+      const sSlider = document.getElementById('settings-volume-slider');
+      if (cSlider && cSlider.value != v) cSlider.value = v;
+      if (sSlider && sSlider.value != v) sSlider.value = v;
+
+      try {
+        localStorage.setItem('zenclock_volume', masterVolume.toString());
+      } catch(e) {}
+
+      playChirpFallback();
     }
 
     // Stopwatch logic
@@ -1867,30 +1954,118 @@
       if (b) b.textContent = is24H ? '24H' : '12H';
     }
 
-    // IP Weather
-    function fetchWeather() {
-      fetch('https://ipapi.co/json/')
-        .then(r => r.json())
-        .then(d => {
-          if (!d.latitude || !d.longitude) return;
-          const city = d.city || 'Local Area';
-          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.latitude}&longitude=${d.longitude}&current=temperature_2m,weather_code`)
-            .then(r => r.json())
-            .then(wd => {
-              const temp = Math.round(wd.current.temperature_2m);
-              const wWidget = document.getElementById('weather-widget');
-              if (wWidget) {
-                wWidget.classList.remove('hidden');
-                wWidget.classList.add('flex');
-                document.getElementById('weather-temp').textContent = `${temp}°C`;
-                document.getElementById('weather-city').textContent = city;
-              }
-            }).catch(() => {});
-        }).catch(() => {});
+    // IP Weather with multi-tier resilient fallback
+    const WMO_MAP = {
+      0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+      45: '🌫️', 48: '🌫️',
+      51: '🌦️', 53: '🌧️', 55: '🌧️', 56: '🌧️', 57: '🌧️',
+      61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️',
+      71: '❄️', 73: '❄️', 75: '❄️', 77: '❄️',
+      80: '🌦️', 81: '🌧️', 82: '🌧️',
+      85: '❄️', 86: '❄️',
+      95: '⛈️', 96: '⛈️', 99: '⛈️',
+    };
+
+    function updateWeatherDisplay(temp, icon, city) {
+      const hIcon = document.getElementById('header-weather-icon');
+      const hTemp = document.getElementById('header-weather-temp');
+      const hCity = document.getElementById('header-weather-city');
+      if (hIcon) hIcon.textContent = icon;
+      if (hTemp) hTemp.textContent = `${temp}°C`;
+      if (hCity) hCity.textContent = city;
+
+      const wIcon = document.getElementById('weather-icon');
+      const wTemp = document.getElementById('weather-temp');
+      const wCity = document.getElementById('weather-city');
+      if (wIcon) wIcon.textContent = icon;
+      if (wTemp) wTemp.textContent = `${temp}°C`;
+      if (wCity) wCity.textContent = city;
+    }
+
+    async function fetchWeather() {
+      let lat = null, lon = null, city = 'Sylhet (Local)';
+
+      // 1. ipwho.is (CORS friendly, fast, zero Cloudflare block)
+      try {
+        const res = await fetch('https://ipwho.is/');
+        if (res.ok) {
+          const d = await res.json();
+          if (d && d.success && d.latitude && d.longitude) {
+            lat = Number(d.latitude);
+            lon = Number(d.longitude);
+            city = d.city || d.region || city;
+          }
+        }
+      } catch(e) {}
+
+      // 2. get.geojs.io fallback
+      if (!lat || !lon) {
+        try {
+          const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+          if (res.ok) {
+            const d = await res.json();
+            if (d && d.latitude && d.longitude) {
+              lat = parseFloat(d.latitude);
+              lon = parseFloat(d.longitude);
+              city = d.city || d.region || city;
+            }
+          }
+        } catch(e) {}
+      }
+
+      // 3. bigdatacloud client fallback
+      if (!lat || !lon) {
+        try {
+          const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client');
+          if (res.ok) {
+            const d = await res.json();
+            if (d && d.latitude && d.longitude) {
+              lat = Number(d.latitude);
+              lon = Number(d.longitude);
+              city = d.city || d.locality || city;
+            }
+          }
+        } catch(e) {}
+      }
+
+      if (!lat || !lon) return;
+
+      try {
+        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+        if (wRes.ok) {
+          const wd = await wRes.json();
+          const temp = Math.round(wd.current.temperature_2m);
+          const code = wd.current.weather_code;
+          const icon = WMO_MAP[code] || '🌤️';
+          updateWeatherDisplay(temp, icon, city);
+          try {
+            localStorage.setItem('zenclock_weather', JSON.stringify({ temp, icon, city }));
+          } catch(e) {}
+        }
+      } catch(e) {}
     }
 
     // Initialize application
     window.addEventListener('DOMContentLoaded', () => {
+      // Restore cached weather immediately if present
+      try {
+        const savedW = localStorage.getItem('zenclock_weather');
+        if (savedW) {
+          const sw = JSON.parse(savedW);
+          if (sw && typeof sw.temp === 'number' && sw.city) {
+            updateWeatherDisplay(sw.temp, sw.icon || '🌤️', sw.city);
+          }
+        }
+      } catch(e) {}
+
+      // Restore saved volume
+      try {
+        const savedV = localStorage.getItem('zenclock_volume');
+        if (savedV !== null) {
+          setMasterVolume(savedV);
+        }
+      } catch(e) {}
+
       applyPalette(currentPalette);
       renderHeaderPalettes();
       renderSettingsPalettes();

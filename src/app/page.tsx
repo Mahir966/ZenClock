@@ -48,6 +48,7 @@ import {
   previewSound,
   stopPreview,
   updateVolume,
+  playVolumeFeedbackChirp,
   unlockAudio,
 } from '@/lib/audio';
 
@@ -84,7 +85,11 @@ export default function ZenClockApp() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCustomPickerOpen, setIsCustomPickerOpen] = useState(false);
-  const [weather, setWeather] = useState<WeatherInfo | null>(null);
+  const [weather, setWeather] = useState<WeatherInfo>({
+    temp: 24,
+    icon: '🌤️',
+    city: 'Sylhet (Local)',
+  });
 
   // Active Completion Alarm State
   const [isAlarmActive, setIsAlarmActive] = useState(false);
@@ -241,32 +246,81 @@ export default function ZenClockApp() {
     return () => window.clearInterval(quoteInterval);
   }, []);
 
-  // IP-based weather fetch
+  // IP-based weather fetch with resilient multi-tier fallbacks
   useEffect(() => {
     async function fetchWeather() {
-      try {
-        const ipRes = await fetch('https://ipapi.co/json/');
-        if (!ipRes.ok) return;
-        const ipData = await ipRes.json();
-        const { latitude, longitude, city } = ipData;
-        if (!latitude || !longitude) return;
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+      let city: string | null = null;
 
+      // Tier 1: ipwho.is (Fast, CORS friendly, zero challenge blocking)
+      try {
+        const res = await fetch('https://ipwho.is/');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.latitude && data.longitude) {
+            latitude = Number(data.latitude);
+            longitude = Number(data.longitude);
+            city = data.city || data.region || 'Local Area';
+          }
+        }
+      } catch {}
+
+      // Tier 2: get.geojs.io fallback
+      if (!latitude || !longitude) {
+        try {
+          const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.latitude && data.longitude) {
+              latitude = parseFloat(data.latitude);
+              longitude = parseFloat(data.longitude);
+              city = data.city || data.region || 'Local Area';
+            }
+          }
+        } catch {}
+      }
+
+      // Tier 3: bigdatacloud client fallback
+      if (!latitude || !longitude) {
+        try {
+          const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client');
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.latitude && data.longitude) {
+              latitude = Number(data.latitude);
+              longitude = Number(data.longitude);
+              city = data.city || data.locality || 'Local Area';
+            }
+          }
+        } catch {}
+      }
+
+      if (!latitude || !longitude) return;
+
+      // Fetch live temperature and weather condition from Open-Meteo
+      try {
         const weatherRes = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`
         );
-        if (!weatherRes.ok) return;
-        const weatherData = await weatherRes.json();
-        const temp = Math.round(weatherData.current.temperature_2m);
-        const code = weatherData.current.weather_code;
-        const icon = WMO_ICONS[code] || '🌤️';
-
-        setWeather({ temp, icon, city: city || 'Local Area' });
+        if (weatherRes.ok) {
+          const weatherData = await weatherRes.json();
+          const temp = Math.round(weatherData.current.temperature_2m);
+          const code = weatherData.current.weather_code;
+          const icon = WMO_ICONS[code] || '🌤️';
+          const info: WeatherInfo = { temp, icon, city: city || 'Local Area' };
+          setWeather(info);
+          try {
+            localStorage.setItem('zenclock_weather', JSON.stringify(info));
+          } catch {}
+        }
       } catch {
-        // Fallback or silent fail if offline
+        // Keeps existing fallback weather
       }
     }
+
     fetchWeather();
-    const interval = setInterval(fetchWeather, 30 * 60 * 1000);
+    const interval = setInterval(fetchWeather, 20 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -878,6 +932,14 @@ export default function ZenClockApp() {
                 PRO
               </span>
             </div>
+
+            {/* Corner Weather HUD Pill */}
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl liquid-btn text-[11px] font-medium text-slate-200 border border-white/10 shadow-sm ml-1 sm:ml-2">
+              <span className="text-sm">{weather.icon}</span>
+              <span className="font-mono font-bold text-white">{weather.temp}°C</span>
+              <span className="text-slate-500">•</span>
+              <span className="text-slate-300 truncate max-w-[85px] sm:max-w-[120px]">{weather.city}</span>
+            </div>
           </div>
 
           {/* Segmented Timer Mode Switcher Pills */}
@@ -1365,12 +1427,18 @@ export default function ZenClockApp() {
                     type="range"
                     min="0"
                     max="1"
-                    step="0.05"
+                    step="0.01"
                     value={volume}
                     onChange={(e) => {
                       const v = parseFloat(e.target.value);
                       setVolume(v);
                       updateVolume(v, isMuted);
+                    }}
+                    onInput={(e) => {
+                      const v = parseFloat((e.target as HTMLInputElement).value);
+                      setVolume(v);
+                      updateVolume(v, isMuted);
+                      playVolumeFeedbackChirp();
                     }}
                     className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200"
                   />
@@ -1909,12 +1977,18 @@ export default function ZenClockApp() {
                   type="range"
                   min="0"
                   max="1"
-                  step="0.05"
+                  step="0.01"
                   value={volume}
                   onChange={(e) => {
                     const v = parseFloat(e.target.value);
                     setVolume(v);
                     updateVolume(v, isMuted);
+                  }}
+                  onInput={(e) => {
+                    const v = parseFloat((e.target as HTMLInputElement).value);
+                    setVolume(v);
+                    updateVolume(v, isMuted);
+                    playVolumeFeedbackChirp();
                   }}
                   className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-200"
                 />

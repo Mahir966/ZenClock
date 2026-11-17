@@ -48,6 +48,23 @@ import {
 
 const STORAGE_KEY = 'zenclock_prefs_v3';
 
+interface WeatherInfo {
+  temp: number;
+  icon: string;
+  city: string;
+}
+
+const WMO_ICONS: Record<number, string> = {
+  0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+  45: '🌫️', 48: '🌫️',
+  51: '🌦️', 53: '🌧️', 55: '🌧️', 56: '🌧️', 57: '🌧️',
+  61: '🌧️', 63: '🌧️', 65: '🌧️', 66: '🌧️', 67: '🌧️',
+  71: '❄️', 73: '❄️', 75: '❄️', 77: '❄️',
+  80: '🌦️', 81: '🌧️', 82: '🌧️',
+  85: '❄️', 86: '❄️',
+  95: '⛈️', 96: '⛈️', 99: '⛈️'
+};
+
 export default function ZenClockApp() {
   // Application Settings & State
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
@@ -60,6 +77,7 @@ export default function ZenClockApp() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCustomPickerOpen, setIsCustomPickerOpen] = useState(false);
+  const [weather, setWeather] = useState<WeatherInfo | null>(null);
 
   // Active Completion Alarm State
   const [isAlarmActive, setIsAlarmActive] = useState(false);
@@ -189,6 +207,30 @@ export default function ZenClockApp() {
       }, 300);
     }, 60000);
     return () => window.clearInterval(quoteInterval);
+  }, []);
+
+  // IP-based weather fetch
+  useEffect(() => {
+    async function fetchWeather() {
+      try {
+        const geo = await fetch('https://ipapi.co/json/').then((r) => r.json());
+        if (!geo || !geo.latitude) return;
+        const wx = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&current_weather=true`
+        ).then((r) => r.json());
+        if (!wx || !wx.current_weather) return;
+
+        const temp = Math.round(wx.current_weather.temperature);
+        const code = wx.current_weather.weathercode;
+        const icon = WMO_ICONS[code] || '🌡️';
+        const city = geo.city || geo.region || 'Unknown';
+        setWeather({ temp, icon, city });
+      } catch {}
+    }
+
+    fetchWeather();
+    const wxInterval = window.setInterval(fetchWeather, 1800000);
+    return () => window.clearInterval(wxInterval);
   }, []);
 
   const handleNextQuote = () => {
@@ -559,7 +601,7 @@ export default function ZenClockApp() {
       )}
 
       {/* TOP HEADER - Glassmorphic Navigation */}
-      <header className="relative z-20 w-full px-4 sm:px-6 py-2.5 border-b border-white/15 dark:border-white/10 bg-white/40 dark:bg-slate-950/40 backdrop-blur-2xl flex items-center justify-between shrink-0 shadow-sm">
+      <header className="relative z-20 w-full px-4 sm:px-6 py-2.5 liquid-header flex items-center justify-between shrink-0 shadow-sm">
         {/* Brand & Logo */}
         <div className="flex items-center space-x-2.5">
           <div className="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-white/20 shadow-md shadow-purple-500/30 flex items-center justify-center bg-black/50 shrink-0">
@@ -573,7 +615,7 @@ export default function ZenClockApp() {
         </div>
 
         {/* Live System Clock & Cultural Date Badge */}
-        <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-white/40 dark:bg-slate-900/40 border border-white/20 dark:border-white/10 backdrop-blur-md text-xs font-mono shadow-sm">
+        <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full liquid-btn text-xs font-mono">
           <Clock className="w-3.5 h-3.5 text-sky-500" />
           <span className="font-semibold tabular text-slate-800 dark:text-slate-200">
             {use24Hour ? clockDigital24 : `${clockDigital12} ${ampm}`}
@@ -589,7 +631,7 @@ export default function ZenClockApp() {
         {/* Header Right Controls */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
           {/* Design Style Selector Switch */}
-          <div className="flex items-center bg-white/40 dark:bg-slate-900/50 backdrop-blur-md rounded-xl p-0.5 border border-white/20 dark:border-white/10 text-xs">
+          <div className="flex items-center liquid-btn rounded-xl p-0.5 text-xs">
             {DESIGN_STYLES.map((style) => (
               <button
                 key={style.id}
@@ -615,10 +657,10 @@ export default function ZenClockApp() {
               updateVolume(volume, nextMuted);
             }}
             className={cn(
-              'p-2 rounded-xl backdrop-blur-md transition-all border',
+              'p-2 rounded-xl liquid-btn transition-all',
               isMuted
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500'
-                : 'bg-white/40 dark:bg-slate-900/50 border-white/20 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800'
+                ? 'bg-rose-500/20 border-rose-500/40 text-rose-500'
+                : 'text-slate-700 dark:text-slate-300'
             )}
             title={isMuted ? 'Unmute Audio [M]' : 'Mute Audio [M]'}
           >
@@ -628,7 +670,7 @@ export default function ZenClockApp() {
           {/* Preferences & Sounds Modal Trigger */}
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all"
+            className="p-2 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 transition-all"
             title="Sound & Audio Settings"
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -637,7 +679,7 @@ export default function ZenClockApp() {
           {/* Dark / Light Mode Toggle */}
           <button
             onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-            className="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all"
+            className="p-2 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 transition-all"
             title="Toggle Dark / Light Theme"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
@@ -646,7 +688,7 @@ export default function ZenClockApp() {
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className="hidden sm:flex p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all"
+            className="hidden sm:flex p-2 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 transition-all"
             title={isFullscreen ? 'Exit Fullscreen [ESC]' : 'Enter Fullscreen'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -658,10 +700,10 @@ export default function ZenClockApp() {
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 min-h-0">
         
         {/* LEFT / CENTER PANEL: MASTER FOCUS TIMER & STUDY SUITE (7 Cols on desktop) */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl bg-white/40 dark:bg-slate-950/40 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] relative min-h-0">
+        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl liquid-glass relative min-h-0">
           
           {/* Mode Switcher Bar */}
-          <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-white/40 dark:bg-slate-900/50 border border-white/20 dark:border-white/10 backdrop-blur-md max-w-full overflow-x-auto shrink-0">
+          <div className="flex items-center space-x-1.5 p-1 rounded-2xl liquid-btn max-w-full overflow-x-auto shrink-0">
             {[
               { id: 'countdown', label: 'Custom Timer', icon: Sparkles },
               { id: 'pomodoro', label: 'Pomodoro (25m)', icon: Flame },
@@ -881,7 +923,7 @@ export default function ZenClockApp() {
           </div>
 
           {/* MOTIVATIONAL QUOTE GLASS WIDGET (Cycles every 1 minute) */}
-          <div className="w-full px-3.5 py-2 my-1 rounded-2xl bg-white/30 dark:bg-white/[0.03] border border-white/30 dark:border-white/[0.08] backdrop-blur-md flex items-center justify-between text-xs transition-all shrink-0">
+          <div className="w-full px-3.5 py-2 my-1 rounded-2xl liquid-btn flex items-center justify-between text-xs transition-all shrink-0">
             <div className="flex items-center space-x-2.5 min-w-0 flex-1">
               <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
                 <Quote className="w-3.5 h-3.5" />
@@ -915,7 +957,7 @@ export default function ZenClockApp() {
               {/* Reset */}
               <button
                 onClick={resetTimer}
-                className="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 hover:bg-white/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 backdrop-blur-md transition-all active:scale-95 shadow-sm"
+                className="p-3 sm:p-3.5 rounded-2xl liquid-btn text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800 transition-all active:scale-95 shadow-sm"
                 title="Reset Timer"
               >
                 <RotateCcw className="w-5 h-5" />
@@ -961,7 +1003,7 @@ export default function ZenClockApp() {
                   setCustomSeconds(sp.seconds);
                   setIsCustomPickerOpen(true);
                 }}
-                className="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 hover:bg-white/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 backdrop-blur-md transition-all active:scale-95 shadow-sm"
+                className="p-3 sm:p-3.5 rounded-2xl liquid-btn text-slate-700 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-800 transition-all active:scale-95 shadow-sm"
                 title="Configure Custom Duration"
               >
                 <SlidersHorizontal className="w-5 h-5" />
@@ -974,7 +1016,7 @@ export default function ZenClockApp() {
                 <button
                   key={p.label}
                   onClick={() => addQuickSeconds(p.sec)}
-                  className="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0"
+                  className="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 liquid-btn hover:text-sky-500 transition-all shrink-0"
                 >
                   {p.label}
                 </button>
@@ -987,7 +1029,7 @@ export default function ZenClockApp() {
         <div className="lg:col-span-5 flex flex-col justify-between gap-3 sm:gap-4 min-h-0">
           
           {/* TOP RIGHT: LIVE ANALOG CLOCK MODULE (Glassmorphic) */}
-          <div className="p-3.5 sm:p-4 rounded-3xl bg-white/40 dark:bg-slate-950/40 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-between min-h-0">
+          <div className="p-3.5 sm:p-4 rounded-3xl liquid-glass flex items-center justify-between min-h-0">
             {/* SVG Analog Clock Face */}
             <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
               <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-md">
@@ -1128,13 +1170,13 @@ export default function ZenClockApp() {
               <div className="flex items-center space-x-2 pt-1">
                 <button
                   onClick={() => setSmoothSweep((s) => !s)}
-                  className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-white/20 dark:border-white/10 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
                 >
                   {smoothSweep ? 'Sweep' : 'Tick'}
                 </button>
                 <button
                   onClick={() => setUse24Hour((h) => !h)}
-                  className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-white/20 dark:border-white/10 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md font-mono liquid-btn text-slate-700 dark:text-slate-300 hover:text-sky-500 transition-colors"
                 >
                   {use24Hour ? '24H' : '12H'}
                 </button>
@@ -1143,7 +1185,7 @@ export default function ZenClockApp() {
           </div>
 
           {/* BOTTOM RIGHT: PRECISION STOPWATCH & LAPS MODULE (Glassmorphic) */}
-          <div className="flex-1 p-3.5 sm:p-4 rounded-3xl bg-white/40 dark:bg-slate-950/40 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col justify-between min-h-0">
+          <div className="flex-1 p-3.5 sm:p-4 rounded-3xl liquid-glass flex flex-col justify-between min-h-0">
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-white/15 dark:border-white/10 shrink-0">
               <div className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -1188,7 +1230,7 @@ export default function ZenClockApp() {
                 <>
                   <button
                     onClick={recordLap}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-white/40 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center space-x-1 border border-white/20 dark:border-white/10 transition-all"
+                    className="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
                   >
                     <Flag className="w-3.5 h-3.5 text-sky-500" />
                     <span>Lap</span>
@@ -1207,7 +1249,7 @@ export default function ZenClockApp() {
                 <>
                   <button
                     onClick={resetStopwatch}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center space-x-1 border border-white/20 dark:border-white/10 transition-all"
+                    className="flex-1 py-1.5 px-3 rounded-xl liquid-btn text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center space-x-1 transition-all"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset</span>
@@ -1260,11 +1302,20 @@ export default function ZenClockApp() {
       </main>
 
       {/* COMPACT FOOTER STATUS BAR - Glassmorphic */}
-      <footer className="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/15 dark:border-white/10 bg-white/40 dark:bg-slate-950/40 backdrop-blur-2xl flex items-center justify-between text-xs text-slate-400 shrink-0">
+      <footer className="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/15 dark:border-white/10 liquid-header flex items-center justify-between text-xs text-slate-400 shrink-0">
         <div className="flex items-center space-x-3">
-          <span>[Space] / [ESC] Dismiss Alert</span>
-          <span>•</span>
-          <span>[M] Mute Sound</span>
+          {/* Weather Widget (IP-based) */}
+          {weather && (
+            <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full liquid-btn text-[11px] font-medium">
+              <span className="text-sm">{weather.icon}</span>
+              <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{weather.temp}°C</span>
+              <span className="text-slate-400 dark:text-slate-500">•</span>
+              <span className="text-slate-600 dark:text-slate-300 truncate max-w-[80px]">{weather.city}</span>
+            </div>
+          )}
+          <span className="hidden sm:inline">[Space] / [ESC] Dismiss Alert</span>
+          <span className="hidden sm:inline">•</span>
+          <span className="hidden sm:inline">[M] Mute Sound</span>
         </div>
         <div className="flex items-center space-x-2">
           <span>

@@ -9,6 +9,7 @@ export interface LapItem {
   lapNumber: number;
   lapTimeMs: number;
   overallTimeMs: number;
+  timestamp?: number;
 }
 
 export interface SoundDefinition {

@@ -6,7 +6,6 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Sliders,
   SlidersHorizontal,
   Volume2,
   VolumeX,
@@ -29,19 +28,15 @@ import {
   Plus,
   Minus,
   X,
-  Disc,
-  Terminal,
   Orbit,
-  ArrowDown,
-  ArrowUp,
   Globe,
-  Calendar,
   SkipForward,
+  Quote,
 } from 'lucide-react';
 
 import { DesignStyle, TimerMode, LapItem } from '@/lib/types';
-import { SOUND_DEFINITIONS, DESIGN_STYLES, QUICK_PRESETS } from '@/lib/constants';
-import { formatTime, formatStopwatch, splitSeconds, cn } from '@/lib/utils';
+import { SOUND_DEFINITIONS, DESIGN_STYLES, QUICK_PRESETS, MOTIVATIONAL_QUOTES } from '@/lib/constants';
+import { formatTime, formatStopwatch, splitSeconds, cn, getBanglaDate, getHijriDate } from '@/lib/utils';
 import {
   playAlarm,
   stopAlarm,
@@ -51,14 +46,14 @@ import {
   unlockAudio,
 } from '@/lib/audio';
 
-const STORAGE_KEY = 'zenclock_prefs_v2';
+const STORAGE_KEY = 'zenclock_prefs_v3';
 
 export default function ZenClockApp() {
   // Application Settings & State
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [designStyle, setDesignStyle] = useState<DesignStyle>('zen');
-  const [selectedSound, setSelectedSound] = useState('oxygen');
-  const [volume, setVolume] = useState(0.8);
+  const [selectedSound, setSelectedSound] = useState('custom_alarm_1');
+  const [volume, setVolume] = useState(0.85);
   const [isMuted, setIsMuted] = useState(false);
   const [soundPermissionGranted, setSoundPermissionGranted] = useState(false);
   const [enable3D, setEnable3D] = useState(true);
@@ -100,6 +95,10 @@ export default function ZenClockApp() {
 
   // Sound Previewing state
   const [previewingId, setPreviewingId] = useState<string | null>(null);
+
+  // Motivational Quotes State (Cycles every 1 minute)
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [quoteFade, setQuoteFade] = useState(true);
 
   // Refs for accurate timing
   const timerTargetEndRef = useRef<number | null>(null);
@@ -180,6 +179,26 @@ export default function ZenClockApp() {
     } catch {}
   };
 
+  // Quotes rotation: rotates every 1 minute (60,000ms)
+  useEffect(() => {
+    const quoteInterval = window.setInterval(() => {
+      setQuoteFade(false);
+      setTimeout(() => {
+        setQuoteIndex((prev) => (prev + 1) % MOTIVATIONAL_QUOTES.length);
+        setQuoteFade(true);
+      }, 300);
+    }, 60000);
+    return () => window.clearInterval(quoteInterval);
+  }, []);
+
+  const handleNextQuote = () => {
+    setQuoteFade(false);
+    setTimeout(() => {
+      setQuoteIndex((prev) => (prev + 1) % MOTIVATIONAL_QUOTES.length);
+      setQuoteFade(true);
+    }, 200);
+  };
+
   // Alarm Trigger & Dismiss
   const triggerAlarmAlert = useCallback(
     (msg = "Time's Up!") => {
@@ -233,7 +252,7 @@ export default function ZenClockApp() {
     return () => cancelAnimationFrame(anim);
   }, []);
 
-  // --- COUNTDOWN / STUDY TIMER ACCURACY TICK LOOP ---
+  // Countdown timer tick loop
   useEffect(() => {
     if (!isTimerRunning || isTimerPaused) return;
 
@@ -248,428 +267,347 @@ export default function ZenClockApp() {
         setIsTimerPaused(false);
         timerTargetEndRef.current = null;
 
-        // Completion logic
         if (timerMode === 'pomodoro') {
           setCompletedPomodoros((c) => c + 1);
-          triggerAlarmAlert(`Focus Session #${studySessionNumber} Completed! Take a refreshing break.`);
+          setStudySessionNumber((s) => (s >= 4 ? 1 : s + 1));
+          triggerAlarmAlert('Pomodoro Focus Session Completed!');
         } else if (timerMode === 'deep_work') {
-          triggerAlarmAlert('Deep Work block finished! Relax and recharge.');
+          triggerAlarmAlert('Deep Work Block Completed! Take a Rest.');
         } else if (timerMode === 'short_break' || timerMode === 'long_break') {
-          triggerAlarmAlert('Break is finished! Ready to step back into focus?');
+          triggerAlarmAlert('Break is Over! Ready to Focus?');
         } else {
-          triggerAlarmAlert(`Timer (${formatTime(duration)}) has finished!`);
+          triggerAlarmAlert('Custom Countdown Complete!');
         }
       } else {
-        const secsLeft = Math.ceil(diffMs / 1000);
-        setRemaining(secsLeft);
+        const secs = Math.ceil(diffMs / 1000);
+        setRemaining(secs);
       }
-    }, 150);
+    }, 100);
 
     return () => window.clearInterval(interval);
-  }, [isTimerRunning, isTimerPaused, duration, timerMode, studySessionNumber, triggerAlarmAlert]);
+  }, [isTimerRunning, isTimerPaused, timerMode, triggerAlarmAlert]);
 
-  // Sync tab title when running
+  // Update browser tab title with active countdown
   useEffect(() => {
-    if (isTimerRunning && !isTimerPaused && remaining > 0) {
+    if (isAlarmActive) return;
+    if (isTimerRunning && !isTimerPaused) {
       document.title = `(${formatTime(remaining)}) ZenClock`;
+    } else {
+      document.title = 'ZenClock — Modern Focus Suite';
     }
-  }, [isTimerRunning, isTimerPaused, remaining]);
+  }, [remaining, isTimerRunning, isTimerPaused, isAlarmActive]);
 
-  // Timer Controls
+  // Timer controls
   const startTimer = () => {
     unlockAudio();
-    if (remaining <= 0) {
-      setRemaining(duration);
-      timerTargetEndRef.current = Date.now() + duration * 1000;
-    } else {
-      timerTargetEndRef.current = Date.now() + remaining * 1000;
-    }
+    const target = Date.now() + (remaining <= 0 ? duration : remaining) * 1000;
+    timerTargetEndRef.current = target;
+    if (remaining <= 0) setRemaining(duration);
     setIsTimerRunning(true);
     setIsTimerPaused(false);
   };
 
   const pauseTimer = () => {
-    if (!isTimerRunning || isTimerPaused) return;
     if (timerTargetEndRef.current) {
-      const diffMs = Math.max(0, timerTargetEndRef.current - Date.now());
-      setRemaining(Math.ceil(diffMs / 1000));
+      const now = Date.now();
+      const currentRemaining = Math.max(0, Math.ceil((timerTargetEndRef.current - now) / 1000));
+      setRemaining(currentRemaining);
     }
     timerTargetEndRef.current = null;
+    setIsTimerRunning(false);
     setIsTimerPaused(true);
   };
 
   const resumeTimer = () => {
-    if (!isTimerRunning || !isTimerPaused) return;
+    if (remaining <= 0) {
+      startTimer();
+      return;
+    }
+    unlockAudio();
     timerTargetEndRef.current = Date.now() + remaining * 1000;
+    setIsTimerRunning(true);
     setIsTimerPaused(false);
   };
 
   const resetTimer = () => {
+    timerTargetEndRef.current = null;
     setIsTimerRunning(false);
     setIsTimerPaused(false);
-    timerTargetEndRef.current = null;
     setRemaining(duration);
-    document.title = 'ZenClock — Modern Focus Suite';
   };
 
-  // Switch Study/Timer Mode
   const switchMode = (mode: TimerMode) => {
-    setIsTimerRunning(false);
-    setIsTimerPaused(false);
-    timerTargetEndRef.current = null;
     setTimerMode(mode);
+    let dur = 1500;
+    if (mode === 'countdown') dur = duration || 1500;
+    if (mode === 'pomodoro') dur = 1500; // 25m
+    if (mode === 'deep_work') dur = 3000; // 50m
+    if (mode === 'short_break') dur = 300; // 5m
+    if (mode === 'long_break') dur = 900; // 15m
 
-    let sec = 1500;
-    if (mode === 'pomodoro') sec = 1500; // 25m
-    else if (mode === 'deep_work') sec = 3000; // 50m
-    else if (mode === 'short_break') sec = 300; // 5m
-    else if (mode === 'long_break') sec = 900; // 15m
-    else if (mode === 'countdown') sec = duration;
-
-    setDuration(sec);
-    setRemaining(sec);
-    const sp = splitSeconds(sec);
-    setCustomHours(sp.hours);
-    setCustomMinutes(sp.minutes);
-    setCustomSeconds(sp.seconds);
-  };
-
-  // Add/Subtract quick seconds
-  const addQuickSeconds = (extraSec: number) => {
-    const newDur = Math.max(1, duration + extraSec);
-    setDuration(newDur);
-    setRemaining((prev) => {
-      const nextRem = Math.max(1, prev + extraSec);
-      if (timerTargetEndRef.current) {
-        timerTargetEndRef.current += extraSec * 1000;
-      }
-      return nextRem;
-    });
-    const sp = splitSeconds(newDur);
-    setCustomHours(sp.hours);
-    setCustomMinutes(sp.minutes);
-    setCustomSeconds(sp.seconds);
-  };
-
-  // Apply custom duration directly (FIXES THE CUSTOM TIMER BUG!)
-  const applyCustomDuration = (h: number, m: number, s: number) => {
-    const totalSec = Math.max(1, h * 3600 + m * 60 + s);
+    setDuration(dur);
+    setRemaining(dur);
     setIsTimerRunning(false);
     setIsTimerPaused(false);
     timerTargetEndRef.current = null;
-    setDuration(totalSec);
-    setRemaining(totalSec);
+  };
+
+  const addQuickSeconds = (sec: number) => {
+    if (isTimerRunning && timerTargetEndRef.current) {
+      timerTargetEndRef.current += sec * 1000;
+      setRemaining((r) => r + sec);
+      setDuration((d) => d + sec);
+    } else {
+      const next = remaining + sec;
+      setDuration(next);
+      setRemaining(next);
+    }
+  };
+
+  const applyCustomDuration = (totalSec: number) => {
+    const validSec = Math.max(5, Math.min(86400, totalSec));
+    setDuration(validSec);
+    setRemaining(validSec);
+    setIsTimerRunning(false);
+    setIsTimerPaused(false);
+    timerTargetEndRef.current = null;
     setIsCustomPickerOpen(false);
   };
 
-  // --- STOPWATCH HIGH-PRECISION TICK LOOP ---
-  useEffect(() => {
-    if (!isSwRunning || isSwPaused) return;
-
-    const tick = () => {
-      if (swStartTimeRef.current !== null) {
-        setSwElapsedMs(swAccumulatedRef.current + (Date.now() - swStartTimeRef.current));
-      }
-      swAnimFrameRef.current = requestAnimationFrame(tick);
-    };
-    swAnimFrameRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (swAnimFrameRef.current) cancelAnimationFrame(swAnimFrameRef.current);
-    };
-  }, [isSwRunning, isSwPaused]);
+  // Stopwatch Logic
+  const stopwatchTick = useCallback(() => {
+    if (!swStartTimeRef.current) return;
+    const now = Date.now();
+    const elapsed = swAccumulatedRef.current + (now - swStartTimeRef.current);
+    setSwElapsedMs(elapsed);
+    swAnimFrameRef.current = requestAnimationFrame(stopwatchTick);
+  }, []);
 
   const startStopwatch = () => {
     swStartTimeRef.current = Date.now();
     setIsSwRunning(true);
     setIsSwPaused(false);
+    swAnimFrameRef.current = requestAnimationFrame(stopwatchTick);
   };
 
   const pauseStopwatch = () => {
-    if (!isSwRunning || isSwPaused) return;
-    if (swStartTimeRef.current !== null) {
+    if (swStartTimeRef.current) {
       swAccumulatedRef.current += Date.now() - swStartTimeRef.current;
-      setSwElapsedMs(swAccumulatedRef.current);
+      swStartTimeRef.current = null;
     }
-    swStartTimeRef.current = null;
+    if (swAnimFrameRef.current) cancelAnimationFrame(swAnimFrameRef.current);
+    setIsSwRunning(false);
     setIsSwPaused(true);
   };
 
   const resumeStopwatch = () => {
-    if (!isSwRunning || !isSwPaused) return;
-    swStartTimeRef.current = Date.now();
-    setIsSwPaused(false);
+    startStopwatch();
   };
 
   const resetStopwatch = () => {
     if (swAnimFrameRef.current) cancelAnimationFrame(swAnimFrameRef.current);
-    setIsSwRunning(false);
-    setIsSwPaused(false);
-    setSwElapsedMs(0);
-    setLaps([]);
     swStartTimeRef.current = null;
     swAccumulatedRef.current = 0;
     swLastLapElapsedRef.current = 0;
+    setSwElapsedMs(0);
+    setIsSwRunning(false);
+    setIsSwPaused(false);
+    setLaps([]);
   };
 
   const recordLap = () => {
     if (!isSwRunning) return;
-    const currentTotal = swStartTimeRef.current !== null
-      ? swAccumulatedRef.current + (Date.now() - swStartTimeRef.current)
-      : swAccumulatedRef.current;
-
-    const lapDuration = currentTotal - swLastLapElapsedRef.current;
+    const currentTotal = swElapsedMs;
+    const lapTime = currentTotal - swLastLapElapsedRef.current;
     swLastLapElapsedRef.current = currentTotal;
 
     const newLap: LapItem = {
-      id: `lap-${Date.now()}-${laps.length + 1}`,
+      id: Math.random().toString(36).substring(2, 9),
       lapNumber: laps.length + 1,
-      lapTimeMs: lapDuration,
+      lapTimeMs: lapTime,
       overallTimeMs: currentTotal,
+      timestamp: Date.now(),
     };
     setLaps((prev) => [newLap, ...prev]);
   };
 
-  const copyLapsToClipboard = () => {
+  const copyLapsToClipboard = async () => {
     if (laps.length === 0) return;
-    const lines = [
-      'ZenClock Stopwatch Laps',
-      ...laps.map((l) => {
-        const s = formatStopwatch(l.lapTimeMs);
-        const o = formatStopwatch(l.overallTimeMs);
-        return `Lap ${l.lapNumber}: +${s.main}.${s.cs} (Total: ${o.main}.${o.cs})`;
-      }),
-    ];
-    navigator.clipboard.writeText(lines.join('\n'));
-    setCopiedLaps(true);
-    setTimeout(() => setCopiedLaps(false), 2000);
+    const text = laps
+      .map((l) => {
+        const split = formatStopwatch(l.lapTimeMs);
+        const total = formatStopwatch(l.overallTimeMs);
+        return `Lap ${l.lapNumber}: +${split.main}.${split.cs} (Total: ${total.main}.${total.cs})`;
+      })
+      .join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedLaps(true);
+      setTimeout(() => setCopiedLaps(false), 2000);
+    } catch {}
   };
 
-  // Compute fastest & slowest lap IDs
-  let fastestLapId: string | null = null;
-  let slowestLapId: string | null = null;
-  if (laps.length >= 2) {
-    let min = Infinity;
-    let max = -Infinity;
-    for (const l of laps) {
-      if (l.lapTimeMs < min) { min = l.lapTimeMs; fastestLapId = l.id; }
-      if (l.lapTimeMs > max) { max = l.lapTimeMs; slowestLapId = l.id; }
-    }
-  }
-
-  // --- THREE.JS SUBTLE 3D PARTICLES BACKGROUND ---
+  // Three.js ambient background
   useEffect(() => {
     if (!enable3D || !threeCanvasRef.current) return;
-
     const container = threeCanvasRef.current;
-    const width = container.clientWidth || window.innerWidth;
-    const height = container.clientHeight || window.innerHeight;
+    container.innerHTML = '';
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-    camera.position.z = 22;
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 24;
 
-    let renderer: THREE.WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
-    } catch {
-      return;
-    }
-
-    renderer.setSize(width, height);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     const group = new THREE.Group();
     scene.add(group);
 
-    // Particle Torus
-    const pCount = 900;
-    const pos = new Float32Array(pCount * 3);
-    const colors = new Float32Array(pCount * 3);
-    const isDark = theme === 'dark';
-    const c1 = isDark ? new THREE.Color(0x38bdf8) : new THREE.Color(0x0284c7);
-    const c2 = isDark ? new THREE.Color(0x818cf8) : new THREE.Color(0x4f46e5);
-
-    for (let i = 0; i < pCount; i++) {
+    const particleCount = 850;
+    const pos = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
       const u = Math.random() * Math.PI * 2;
       const v = Math.random() * Math.PI * 2;
       const R = 8.5 + (Math.random() - 0.5) * 2;
-      const r = 2.0 + (Math.random() - 0.5) * 1.2;
-
+      const r = 2.2 + (Math.random() - 0.5) * 1;
       pos[i * 3] = (R + r * Math.cos(v)) * Math.cos(u);
       pos[i * 3 + 1] = (R + r * Math.cos(v)) * Math.sin(u);
       pos[i * 3 + 2] = r * Math.sin(v);
-
-      const col = c1.clone().lerp(c2, Math.random());
-      colors[i * 3] = col.r;
-      colors[i * 3 + 1] = col.g;
-      colors[i * 3 + 2] = col.b;
     }
-
-    const pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-    const pMat = new THREE.PointsMaterial({
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const material = new THREE.PointsMaterial({
       size: 0.12,
-      vertexColors: true,
+      color: theme === 'dark' ? 0x818cf8 : 0x0284c7,
       transparent: true,
-      opacity: isDark ? 0.6 : 0.35,
-      blending: THREE.AdditiveBlending,
+      opacity: theme === 'dark' ? 0.45 : 0.35,
     });
-    const particles = new THREE.Points(pGeo, pMat);
-    group.add(particles);
-
-    // Gyroscopic Ring
-    const ringGeo = new THREE.TorusGeometry(8.0, 0.03, 8, 60);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: isDark ? 0x93c5fd : 0x3b82f6,
-      transparent: true,
-      opacity: isDark ? 0.2 : 0.1,
-    });
-    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-    ringMesh.rotation.x = Math.PI / 3;
-    group.add(ringMesh);
-
-    let mouseX = 0;
-    let mouseY = 0;
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = (e.clientX / window.innerWidth - 0.5) * 0.3;
-      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.3;
-    };
-    window.addEventListener('mousemove', onMouseMove);
-
-    const onResize = () => {
-      if (!container) return;
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener('resize', onResize);
+    const points = new THREE.Points(geometry, material);
+    group.add(points);
 
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      if (document.hidden) return;
-
-      group.rotation.y += (mouseX - group.rotation.y) * 0.05;
-      group.rotation.x += (-mouseY - group.rotation.x) * 0.05;
-
-      const speed = isTimerRunning ? 1.8 : 0.6;
-      particles.rotation.z += 0.0015 * speed;
-      ringMesh.rotation.z += 0.002 * speed;
-
+      group.rotation.y += 0.002;
+      group.rotation.x += 0.001;
       renderer.render(scene, camera);
     };
     animate();
 
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('resize', onResize);
-      if (container && renderer.domElement) {
-        try { container.removeChild(renderer.domElement); } catch {}
-      }
-      pGeo.dispose();
-      pMat.dispose();
-      ringGeo.dispose();
-      ringMat.dispose();
+      window.removeEventListener('resize', handleResize);
       renderer.dispose();
+      geometry.dispose();
+      material.dispose();
     };
-  }, [enable3D, theme, isTimerRunning]);
+  }, [enable3D, theme]);
 
-  // Analog Clock angles calculation
-  const dateObj = currentTime || new Date();
-  const rawMs = dateObj.getMilliseconds();
-  const rawSec = dateObj.getSeconds();
-  const rawMin = dateObj.getMinutes();
-  const rawHrs = dateObj.getHours();
+  // Analog Clock angles
+  const now = currentTime || new Date();
+  const ms = now.getMilliseconds();
+  const sec = now.getSeconds();
+  const min = now.getMinutes();
+  const hr = now.getHours();
 
-  const secVal = smoothSweep ? rawSec + rawMs / 1000 : rawSec;
-  const minVal = rawMin + secVal / 60;
-  const hrsVal = (rawHrs % 12) + minVal / 60;
+  const secVal = smoothSweep ? sec + ms / 1000 : sec;
+  const minVal = min + secVal / 60;
+  const hrVal = (hr % 12) + minVal / 60;
 
   const secAngle = secVal * 6;
   const minAngle = minVal * 6;
-  const hrAngle = hrsVal * 30;
+  const hrAngle = hrVal * 30;
 
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  const clockDigital12 = `${pad(rawHrs % 12 || 12)}:${pad(rawMin)}:${pad(rawSec)}`;
-  const clockDigital24 = `${pad(rawHrs)}:${pad(rawMin)}:${pad(rawSec)}`;
-  const ampm = rawHrs >= 12 ? 'PM' : 'AM';
-  const dayOfMonth = dateObj.getDate();
-  const formattedDate = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).format(dateObj);
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
+  const clockDigital12 = `${(hr % 12 || 12).toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  const clockDigital24 = `${hr.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  const ampm = hr >= 12 ? 'PM' : 'AM';
+  const dayOfMonth = now.getDate();
+  const formattedDate = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const timezone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ') : 'Local Time';
 
-  // Timer Progress fraction (0 to 1)
-  const timerProgress = duration > 0 ? Math.min(1, Math.max(0, (duration - remaining) / duration)) : 0;
+  // Bangla & Hijri Dates
+  const banglaDate = getBanglaDate(now);
+  const hijriDate = getHijriDate(now);
+
+  // Timer Progress
+  const timerProgress = duration > 0 ? (duration - remaining) / duration : 0;
   const circleRadius = 110;
   const circleCircumference = 2 * Math.PI * circleRadius;
   const strokeOffset = circleCircumference - (1 - timerProgress) * circleCircumference;
 
-  // Stopwatch formatted string
+  // Stopwatch formatted
   const swFormatted = formatStopwatch(swElapsedMs);
+  const fastestLapId = laps.length > 1 ? laps.reduce((f, l) => (l.lapTimeMs < f.lapTimeMs ? l : f), laps[0])?.id : null;
+  const slowestLapId = laps.length > 1 ? laps.reduce((s, l) => (l.lapTimeMs > s.lapTimeMs ? l : s), laps[0])?.id : null;
+
+  const currentQuote = MOTIVATIONAL_QUOTES[quoteIndex] || MOTIVATIONAL_QUOTES[0];
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden flex flex-col justify-between bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors duration-300 select-none">
-      {/* Three.js 3D Background */}
+    <div className="relative w-screen h-screen overflow-hidden flex flex-col justify-between bg-slate-900 text-slate-100 transition-colors duration-300 select-none">
+      {/* 3D Three.js Ambient Particle Halo */}
       {enable3D && (
-        <div
-          ref={threeCanvasRef}
-          className="fixed inset-0 pointer-events-none z-0 opacity-75"
-          aria-hidden="true"
-        />
+        <div ref={threeCanvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-70" />
       )}
 
-      {/* TOP COMPACT HEADER */}
-      <header className="relative z-20 w-full px-4 sm:px-6 py-2.5 border-b border-slate-200/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md flex items-center justify-between shrink-0">
-        {/* Brand */}
+      {/* TOP HEADER - Glassmorphic Navigation */}
+      <header className="relative z-20 w-full px-4 sm:px-6 py-2.5 border-b border-white/15 dark:border-white/10 bg-white/40 dark:bg-slate-950/40 backdrop-blur-2xl flex items-center justify-between shrink-0 shadow-sm">
+        {/* Brand & Logo */}
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
-            <Sparkles className="w-4 h-4 animate-pulse" />
+          <div className="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-white/20 shadow-md shadow-purple-500/30 flex items-center justify-center bg-black/50 shrink-0">
+            <img src="./logo.png" alt="ZenClock Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+            <h1 className="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:via-slate-200 dark:to-indigo-300 bg-clip-text text-transparent">
               ZenClock
             </h1>
           </div>
         </div>
 
-        {/* Live Mini Time & Date Badge */}
-        <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 text-xs font-mono">
+        {/* Live System Clock & Cultural Date Badge */}
+        <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-white/40 dark:bg-slate-900/40 border border-white/20 dark:border-white/10 backdrop-blur-md text-xs font-mono shadow-sm">
           <Clock className="w-3.5 h-3.5 text-sky-500" />
-          <span className="font-semibold tabular">
+          <span className="font-semibold tabular text-slate-800 dark:text-slate-200">
             {use24Hour ? clockDigital24 : `${clockDigital12} ${ampm}`}
           </span>
-          <span className="text-slate-400">•</span>
-          <span className="text-slate-500 dark:text-slate-400">{formattedDate}</span>
+          <span className="text-slate-400 dark:text-slate-600">•</span>
+          <span className="text-slate-600 dark:text-slate-300">{formattedDate}</span>
+          <span className="text-slate-400 dark:text-slate-600">•</span>
+          <span className="text-emerald-600 dark:text-emerald-400 font-medium">🇧🇩 {banglaDate}</span>
+          <span className="text-slate-400 dark:text-slate-600">•</span>
+          <span className="text-indigo-600 dark:text-indigo-300 font-medium">🌙 {hijriDate}</span>
         </div>
 
-        {/* Control Tools Cluster */}
+        {/* Header Right Controls */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
-          {/* Layout Style Picker */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/60 dark:border-slate-700/60 text-xs">
-            {DESIGN_STYLES.map((st) => (
+          {/* Design Style Selector Switch */}
+          <div className="flex items-center bg-white/40 dark:bg-slate-900/50 backdrop-blur-md rounded-xl p-0.5 border border-white/20 dark:border-white/10 text-xs">
+            {DESIGN_STYLES.map((style) => (
               <button
-                key={st.id}
-                onClick={() => setDesignStyle(st.id)}
-                title={st.tag}
+                key={style.id}
+                onClick={() => setDesignStyle(style.id)}
                 className={cn(
-                  'px-2.5 py-1 rounded-lg font-medium transition-all',
-                  designStyle === st.id
-                    ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-sm font-semibold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  'px-2.5 py-1 rounded-lg font-medium transition-all text-xs',
+                  designStyle === style.id
+                    ? 'bg-white dark:bg-slate-800 text-sky-500 font-semibold shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 )}
+                title={style.tag}
               >
-                {st.name.split(' ')[0]}
+                {style.name.split(' ')[0]}
               </button>
             ))}
           </div>
 
-          {/* Dedicated Mute/Unmute */}
+          {/* Mute / Unmute Button */}
           <button
             onClick={() => {
               const nextMuted = !isMuted;
@@ -677,29 +615,29 @@ export default function ZenClockApp() {
               updateVolume(volume, nextMuted);
             }}
             className={cn(
-              'p-2 rounded-xl border transition-all',
+              'p-2 rounded-xl backdrop-blur-md transition-all border',
               isMuted
-                ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-                : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500'
+                : 'bg-white/40 dark:bg-slate-900/50 border-white/20 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800'
             )}
-            title={isMuted ? 'Unmute Audio (Visual alerts still active)' : 'Mute Audio [M]'}
+            title={isMuted ? 'Unmute Audio [M]' : 'Mute Audio [M]'}
           >
             {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
-          {/* Settings Modal Trigger */}
+          {/* Preferences & Sounds Modal Trigger */}
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
-            title="Alarm Sounds & Preferences"
+            className="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all"
+            title="Sound & Audio Settings"
           >
-            <Sliders className="w-4 h-4" />
+            <SlidersHorizontal className="w-4 h-4" />
           </button>
 
-          {/* Theme Toggle */}
+          {/* Dark / Light Mode Toggle */}
           <button
             onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            className="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all"
             title="Toggle Dark / Light Theme"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
@@ -708,7 +646,7 @@ export default function ZenClockApp() {
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className="hidden sm:flex p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            className="hidden sm:flex p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 backdrop-blur-md text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all"
             title={isFullscreen ? 'Exit Fullscreen [ESC]' : 'Enter Fullscreen'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -718,10 +656,12 @@ export default function ZenClockApp() {
 
       {/* MAIN SINGLE-PAGE NO-SCROLL DASHBOARD */}
       <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 min-h-0">
+        
         {/* LEFT / CENTER PANEL: MASTER FOCUS TIMER & STUDY SUITE (7 Cols on desktop) */}
-        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg relative min-h-0">
+        <div className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl bg-white/40 dark:bg-slate-950/40 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] relative min-h-0">
+          
           {/* Mode Switcher Bar */}
-          <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 max-w-full overflow-x-auto shrink-0">
+          <div className="flex items-center space-x-1.5 p-1 rounded-2xl bg-white/40 dark:bg-slate-900/50 border border-white/20 dark:border-white/10 backdrop-blur-md max-w-full overflow-x-auto shrink-0">
             {[
               { id: 'countdown', label: 'Custom Timer', icon: Sparkles },
               { id: 'pomodoro', label: 'Pomodoro (25m)', icon: Flame },
@@ -738,7 +678,7 @@ export default function ZenClockApp() {
                   className={cn(
                     'flex-1 flex items-center justify-center space-x-1.5 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all',
                     isActive
-                      ? 'bg-white dark:bg-slate-900 text-sky-500 shadow-sm'
+                      ? 'bg-white dark:bg-slate-800 text-sky-500 shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   )}
                 >
@@ -749,26 +689,24 @@ export default function ZenClockApp() {
             })}
           </div>
 
-          {/* DYNAMIC DESIGN STYLE DISPLAY (Fits cleanly without scrolling!) */}
-          <div className="flex-1 flex flex-col items-center justify-center my-2 sm:my-4 relative">
+          {/* DYNAMIC DESIGN STYLE DISPLAY */}
+          <div className="flex-1 flex flex-col items-center justify-center my-2 sm:my-3 relative">
             {/* 1. ZEN MINIMALIST STYLE */}
             {designStyle === 'zen' && (
               <div className="relative flex items-center justify-center">
-                {/* Breathing ambient glow */}
                 <div
                   className={cn(
                     'absolute inset-4 rounded-full blur-2xl transition-all duration-1000',
                     isTimerRunning ? 'bg-sky-500/20 scale-105' : 'bg-sky-500/5 scale-95'
                   )}
                 />
-
                 <div className="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
                   <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 260 260">
                     <circle
                       cx="130"
                       cy="130"
                       r={circleRadius}
-                      className="stroke-slate-200/60 dark:stroke-slate-800/70"
+                      className="stroke-slate-300/40 dark:stroke-slate-800/70"
                       strokeWidth="5"
                       fill="transparent"
                     />
@@ -787,7 +725,13 @@ export default function ZenClockApp() {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span
-                      onClick={() => setIsCustomPickerOpen(true)}
+                      onClick={() => {
+                        const sp = splitSeconds(duration);
+                        setCustomHours(sp.hours);
+                        setCustomMinutes(sp.minutes);
+                        setCustomSeconds(sp.seconds);
+                        setIsCustomPickerOpen(true);
+                      }}
                       className="text-5xl sm:text-6xl font-mono font-bold tracking-tight tabular cursor-pointer hover:opacity-85 transition-opacity"
                       title="Click to set custom duration"
                     >
@@ -801,7 +745,7 @@ export default function ZenClockApp() {
               </div>
             )}
 
-            {/* 2. STUDIO MODERN (BAUHAUS RADIAL SEGMENTED DIAL) */}
+            {/* 2. STUDIO MODERN STYLE */}
             {designStyle === 'studio' && (
               <div className="relative w-56 h-56 sm:w-68 sm:h-68 flex items-center justify-center">
                 <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 280 280">
@@ -820,16 +764,22 @@ export default function ZenClockApp() {
                         x2={140 + r2 * Math.cos(rad)}
                         y2={140 + r2 * Math.sin(rad)}
                         stroke={isActive ? '#f59e0b' : 'currentColor'}
-                        className={isActive ? 'stroke-amber-500' : 'stroke-slate-200 dark:stroke-slate-800'}
+                        className={isActive ? 'stroke-amber-500' : 'stroke-slate-300/40 dark:stroke-slate-800'}
                         strokeWidth={isMajor ? 3 : 1.5}
                         strokeLinecap="round"
                       />
                     );
                   })}
                 </svg>
-                <div className="absolute inset-10 rounded-full bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center shadow-lg">
+                <div className="absolute inset-10 rounded-full bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border border-white/30 dark:border-white/10 flex flex-col items-center justify-center shadow-lg">
                   <span
-                    onClick={() => setIsCustomPickerOpen(true)}
+                    onClick={() => {
+                      const sp = splitSeconds(duration);
+                      setCustomHours(sp.hours);
+                      setCustomMinutes(sp.minutes);
+                      setCustomSeconds(sp.seconds);
+                      setIsCustomPickerOpen(true);
+                    }}
                     className="text-5xl sm:text-6xl font-mono font-extrabold tracking-tight tabular text-amber-500 cursor-pointer"
                   >
                     {formatTime(remaining)}
@@ -843,7 +793,7 @@ export default function ZenClockApp() {
 
             {/* 3. CYBER NEON HUD */}
             {designStyle === 'cyber' && (
-              <div className="w-full max-w-sm p-5 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative">
+              <div className="w-full max-w-sm p-5 rounded-2xl bg-slate-950/80 backdrop-blur-xl border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative">
                 <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-cyan-400" />
                 <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-cyan-400" />
                 <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-cyan-400" />
@@ -856,14 +806,19 @@ export default function ZenClockApp() {
 
                 <div className="text-center my-2">
                   <span
-                    onClick={() => setIsCustomPickerOpen(true)}
+                    onClick={() => {
+                      const sp = splitSeconds(duration);
+                      setCustomHours(sp.hours);
+                      setCustomMinutes(sp.minutes);
+                      setCustomSeconds(sp.seconds);
+                      setIsCustomPickerOpen(true);
+                    }}
                     className="text-5xl sm:text-6xl font-mono font-black text-cyan-300 drop-shadow-[0_0_15px_rgba(6,182,212,0.6)] cursor-pointer tabular"
                   >
                     {formatTime(remaining)}
                   </span>
                 </div>
 
-                {/* Progress bar */}
                 <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-cyan-900/60 mt-3">
                   <div
                     className="bg-cyan-400 h-full shadow-[0_0_10px_#22d3ee] transition-all duration-200"
@@ -875,10 +830,16 @@ export default function ZenClockApp() {
 
             {/* 4. SPATIAL 3D GLASS ORB */}
             {designStyle === 'spatial' && (
-              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-indigo-500/10 via-slate-900/70 to-purple-500/10 border border-white/20 dark:border-white/10 shadow-2xl flex flex-col items-center justify-center p-4">
+              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-indigo-500/10 via-slate-900/60 to-purple-500/10 border border-white/20 dark:border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center p-4">
                 <Orbit className="w-5 h-5 text-indigo-400 animate-spin mb-1" style={{ animationDuration: '10s' }} />
                 <span
-                  onClick={() => setIsCustomPickerOpen(true)}
+                  onClick={() => {
+                    const sp = splitSeconds(duration);
+                    setCustomHours(sp.hours);
+                    setCustomMinutes(sp.minutes);
+                    setCustomSeconds(sp.seconds);
+                    setIsCustomPickerOpen(true);
+                  }}
                   className="text-5xl sm:text-6xl font-mono font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] cursor-pointer tabular"
                 >
                   {formatTime(remaining)}
@@ -891,7 +852,7 @@ export default function ZenClockApp() {
 
             {/* Study Cycle Indicator (When in Pomodoro mode) */}
             {timerMode === 'pomodoro' && (
-              <div className="mt-3 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-2.5 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
                 <span>Cycle:</span>
                 <div className="flex items-center space-x-1.5">
                   {[1, 2, 3, 4].map((step) => (
@@ -919,13 +880,42 @@ export default function ZenClockApp() {
             )}
           </div>
 
+          {/* MOTIVATIONAL QUOTE GLASS WIDGET (Cycles every 1 minute) */}
+          <div className="w-full px-3.5 py-2 my-1 rounded-2xl bg-white/30 dark:bg-white/[0.03] border border-white/30 dark:border-white/[0.08] backdrop-blur-md flex items-center justify-between text-xs transition-all shrink-0">
+            <div className="flex items-center space-x-2.5 min-w-0 flex-1">
+              <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                <Quote className="w-3.5 h-3.5" />
+              </div>
+              <div className={cn('flex-1 min-w-0 transition-opacity duration-300', quoteFade ? 'opacity-100' : 'opacity-0')}>
+                <p className="italic text-slate-700 dark:text-slate-200 truncate text-[11px] sm:text-xs">
+                  &ldquo;{currentQuote.text}&rdquo;
+                </p>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
+                  — {currentQuote.author}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-1.5 pl-2 shrink-0">
+              <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 bg-white/20 dark:bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/10" title="Updates every 60s">
+                60s
+              </span>
+              <button
+                onClick={handleNextQuote}
+                className="p-1 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                title="Next Quote"
+              >
+                <SkipForward className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
           {/* TIMER ACTION CONTROLS */}
-          <div className="flex flex-col items-center space-y-3 shrink-0">
+          <div className="flex flex-col items-center space-y-2.5 shrink-0 pt-1">
             <div className="flex items-center space-x-3 sm:space-x-4">
               {/* Reset */}
               <button
                 onClick={resetTimer}
-                className="p-3 sm:p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all active:scale-95"
+                className="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 hover:bg-white/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 backdrop-blur-md transition-all active:scale-95 shadow-sm"
                 title="Reset Timer"
               >
                 <RotateCcw className="w-5 h-5" />
@@ -971,7 +961,7 @@ export default function ZenClockApp() {
                   setCustomSeconds(sp.seconds);
                   setIsCustomPickerOpen(true);
                 }}
-                className="p-3 sm:p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all active:scale-95"
+                className="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 hover:bg-white/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 backdrop-blur-md transition-all active:scale-95 shadow-sm"
                 title="Configure Custom Duration"
               >
                 <SlidersHorizontal className="w-5 h-5" />
@@ -984,7 +974,7 @@ export default function ZenClockApp() {
                 <button
                   key={p.label}
                   onClick={() => addQuickSeconds(p.sec)}
-                  className="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/30 border border-transparent hover:border-sky-500/30 transition-all shrink-0"
+                  className="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0"
                 >
                   {p.label}
                 </button>
@@ -995,8 +985,9 @@ export default function ZenClockApp() {
 
         {/* RIGHT COLUMN: ANALOG CLOCK + STOPWATCH (5 Cols on desktop) */}
         <div className="lg:col-span-5 flex flex-col justify-between gap-3 sm:gap-4 min-h-0">
-          {/* TOP RIGHT: LIVE ANALOG CLOCK MODULE */}
-          <div className="p-3.5 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg flex items-center justify-between min-h-0">
+          
+          {/* TOP RIGHT: LIVE ANALOG CLOCK MODULE (Glassmorphic) */}
+          <div className="p-3.5 sm:p-4 rounded-3xl bg-white/40 dark:bg-slate-950/40 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] flex items-center justify-between min-h-0">
             {/* SVG Analog Clock Face */}
             <div className="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
               <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-md">
@@ -1005,14 +996,14 @@ export default function ZenClockApp() {
                   cx="100"
                   cy="100"
                   r="95"
-                  className="fill-slate-100/90 dark:fill-slate-950/90 stroke-slate-300/80 dark:stroke-slate-700/80"
+                  className="fill-white/40 dark:fill-slate-950/70 stroke-white/40 dark:stroke-slate-700/80"
                   strokeWidth="2.5"
                 />
                 <circle
                   cx="100"
                   cy="100"
                   r="91"
-                  className="fill-white/80 dark:fill-slate-900/60"
+                  className="fill-white/60 dark:fill-slate-900/60"
                 />
 
                 {/* Hour Ticks */}
@@ -1043,7 +1034,7 @@ export default function ZenClockApp() {
                     width="24"
                     height="18"
                     rx="3"
-                    className="fill-slate-200 dark:fill-slate-800"
+                    className="fill-slate-200/80 dark:fill-slate-800"
                   />
                   <text
                     x="12"
@@ -1103,7 +1094,7 @@ export default function ZenClockApp() {
               </svg>
             </div>
 
-            {/* Analog Clock Telemetry & Readouts */}
+            {/* Analog Clock Telemetry & Cultural Dates */}
             <div className="flex-1 pl-4 flex flex-col justify-center space-y-1.5 min-w-0">
               <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 flex items-center space-x-1">
                 <Globe className="w-3 h-3 text-sky-500" />
@@ -1117,21 +1108,33 @@ export default function ZenClockApp() {
                 )}
               </div>
 
-              <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="text-xs font-medium text-slate-600 dark:text-slate-300">
                 {formattedDate}
               </div>
 
-              {/* Toggles */}
+              {/* Cultural Calendar Badges (Bangla & Hijri) */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <div className="px-2 py-0.5 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] font-medium flex items-center space-x-1">
+                  <span>🇧🇩</span>
+                  <span className="font-mono">{banglaDate}</span>
+                </div>
+                <div className="px-2 py-0.5 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 text-indigo-700 dark:text-indigo-300 text-[10px] font-medium flex items-center space-x-1">
+                  <span>🌙</span>
+                  <span className="font-mono">{hijriDate}</span>
+                </div>
+              </div>
+
+              {/* Sweep & 12/24H Toggles */}
               <div className="flex items-center space-x-2 pt-1">
                 <button
                   onClick={() => setSmoothSweep((s) => !s)}
-                  className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 border border-slate-200/60 dark:border-slate-700/60 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-white/20 dark:border-white/10 transition-colors"
                 >
                   {smoothSweep ? 'Sweep' : 'Tick'}
                 </button>
                 <button
                   onClick={() => setUse24Hour((h) => !h)}
-                  className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 border border-slate-200/60 dark:border-slate-700/60 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-white/20 dark:border-white/10 transition-colors"
                 >
                   {use24Hour ? '24H' : '12H'}
                 </button>
@@ -1139,10 +1142,10 @@ export default function ZenClockApp() {
             </div>
           </div>
 
-          {/* BOTTOM RIGHT: PRECISION STOPWATCH & LAPS MODULE */}
-          <div className="flex-1 p-3.5 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg flex flex-col justify-between min-h-0">
+          {/* BOTTOM RIGHT: PRECISION STOPWATCH & LAPS MODULE (Glassmorphic) */}
+          <div className="flex-1 p-3.5 sm:p-4 rounded-3xl bg-white/40 dark:bg-slate-950/40 border border-white/30 dark:border-white/10 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col justify-between min-h-0">
             {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+            <div className="flex items-center justify-between pb-2 border-b border-white/15 dark:border-white/10 shrink-0">
               <div className="flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
                 <Watch className="w-3.5 h-3.5 text-sky-500" />
                 <span>Chronograph</span>
@@ -1185,7 +1188,7 @@ export default function ZenClockApp() {
                 <>
                   <button
                     onClick={recordLap}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center space-x-1 border border-slate-200/60 dark:border-slate-700/60 transition-all"
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-white/40 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-semibold text-xs flex items-center justify-center space-x-1 border border-white/20 dark:border-white/10 transition-all"
                   >
                     <Flag className="w-3.5 h-3.5 text-sky-500" />
                     <span>Lap</span>
@@ -1204,7 +1207,7 @@ export default function ZenClockApp() {
                 <>
                   <button
                     onClick={resetStopwatch}
-                    className="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center space-x-1 border border-slate-200/60 dark:border-slate-700/60 transition-all"
+                    className="flex-1 py-1.5 px-3 rounded-xl bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold text-xs flex items-center justify-center space-x-1 border border-white/20 dark:border-white/10 transition-all"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset</span>
@@ -1220,8 +1223,8 @@ export default function ZenClockApp() {
               )}
             </div>
 
-            {/* Scrollable Lap Records List (Compact!) */}
-            <div className="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 text-xs font-mono mt-1">
+            {/* Scrollable Lap Records List */}
+            <div className="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-white/10 dark:divide-white/[0.06] text-xs font-mono mt-1">
               {laps.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-slate-400 text-[11px] italic">
                   Press &quot;Lap&quot; while running to record splits
@@ -1256,15 +1259,17 @@ export default function ZenClockApp() {
         </div>
       </main>
 
-      {/* COMPACT FOOTER STATUS BAR */}
-      <footer className="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-slate-200/60 dark:border-slate-800/60 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md flex items-center justify-between text-xs text-slate-400 shrink-0">
+      {/* COMPACT FOOTER STATUS BAR - Glassmorphic */}
+      <footer className="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/15 dark:border-white/10 bg-white/40 dark:bg-slate-950/40 backdrop-blur-2xl flex items-center justify-between text-xs text-slate-400 shrink-0">
         <div className="flex items-center space-x-3">
           <span>[Space] / [ESC] Dismiss Alert</span>
           <span>•</span>
           <span>[M] Mute Sound</span>
         </div>
         <div className="flex items-center space-x-2">
-          <span>Sound: <strong>{SOUND_DEFINITIONS.find((s) => s.id === selectedSound)?.name}</strong></span>
+          <span>
+            Alarm: <strong className="text-slate-700 dark:text-slate-200">{SOUND_DEFINITIONS.find((s) => s.id === selectedSound)?.name}</strong>
+          </span>
           <span>•</span>
           <button
             onClick={() => setIsSettingsOpen(true)}
@@ -1277,7 +1282,7 @@ export default function ZenClockApp() {
 
       {/* SOUND ACTIVATION PERMISSION BANNER (First Visit) */}
       {!soundPermissionGranted && (
-        <div className="fixed bottom-12 right-6 z-40 max-w-sm p-4 rounded-2xl bg-white dark:bg-slate-900 border border-sky-500/40 shadow-2xl backdrop-blur-xl animate-fadeIn">
+        <div className="fixed bottom-12 right-6 z-40 max-w-sm p-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-sky-500/40 shadow-2xl backdrop-blur-2xl animate-fadeIn">
           <div className="flex items-start space-x-3">
             <div className="p-2 rounded-xl bg-sky-500/10 text-sky-500">
               <Bell className="w-5 h-5 animate-bounce" />
@@ -1287,7 +1292,7 @@ export default function ZenClockApp() {
                 Enable Alarm Sound
               </h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Grant audio permission so classic Android alarm tones ring when timers complete.
+                Grant audio permission so alarms and chimes ring when your timer completes.
               </p>
               <div className="flex items-center space-x-2 mt-3">
                 <button
@@ -1345,11 +1350,11 @@ export default function ZenClockApp() {
         </>
       )}
 
-      {/* CUSTOM TIMER PICKER MODAL (WORKING 100%!) */}
+      {/* CUSTOM TIMER PICKER MODAL */}
       {isCustomPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-sm rounded-3xl bg-white/90 dark:bg-slate-900/95 border border-white/30 dark:border-white/10 p-6 shadow-2xl backdrop-blur-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/20 dark:border-white/10">
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-sky-500" />
                 <h3 className="font-bold text-base">Set Custom Timer</h3>
@@ -1368,7 +1373,7 @@ export default function ZenClockApp() {
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setCustomHours((h) => Math.min(23, h + 1))}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -1382,7 +1387,7 @@ export default function ZenClockApp() {
                 />
                 <button
                   onClick={() => setCustomHours((h) => Math.max(0, h - 1))}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
@@ -1395,7 +1400,7 @@ export default function ZenClockApp() {
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setCustomMinutes((m) => (m >= 59 ? 0 : m + 1))}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -1409,7 +1414,7 @@ export default function ZenClockApp() {
                 />
                 <button
                   onClick={() => setCustomMinutes((m) => (m <= 0 ? 59 : m - 1))}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
@@ -1422,7 +1427,7 @@ export default function ZenClockApp() {
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setCustomSeconds((s) => (s >= 59 ? 0 : s + 1))}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -1436,7 +1441,7 @@ export default function ZenClockApp() {
                 />
                 <button
                   onClick={() => setCustomSeconds((s) => (s <= 0 ? 59 : s - 1))}
-                  className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"
+                  className="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
@@ -1444,39 +1449,19 @@ export default function ZenClockApp() {
               </div>
             </div>
 
-            {/* Quick presets */}
-            <div className="grid grid-cols-4 gap-1.5 mb-5">
-              {[60, 300, 600, 900, 1500, 1800, 2700, 3600].map((s) => {
-                const label = s < 3600 ? `${s / 60}m` : `${s / 3600}h`;
-                return (
-                  <button
-                    key={s}
-                    onClick={() => {
-                      const sp = splitSeconds(s);
-                      setCustomHours(sp.hours);
-                      setCustomMinutes(sp.minutes);
-                      setCustomSeconds(sp.seconds);
-                    }}
-                    className="py-1 rounded-lg text-xs font-mono bg-slate-100 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-slate-700 dark:text-slate-300 hover:text-sky-500"
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Apply Button */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setIsCustomPickerOpen(false)}
-                className="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-white/40 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
-                onClick={() => applyCustomDuration(customHours, customMinutes, customSeconds)}
-                disabled={customHours === 0 && customMinutes === 0 && customSeconds === 0}
-                className="flex-1 py-2 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white disabled:opacity-50 shadow-md shadow-sky-500/25"
+                onClick={() => {
+                  const total = customHours * 3600 + customMinutes * 60 + customSeconds;
+                  applyCustomDuration(total || 60);
+                }}
+                className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/25"
               >
                 Apply Duration
               </button>
@@ -1485,18 +1470,19 @@ export default function ZenClockApp() {
         </div>
       )}
 
-      {/* SETTINGS & AUDIO PREFERENCES MODAL */}
+      {/* PREFERENCES & SOUND SELECTOR MODAL */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl flex flex-col max-h-[85vh]">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-md rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-white/30 dark:border-white/10 p-6 shadow-2xl backdrop-blur-2xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-white/20 dark:border-white/10 shrink-0">
               <div className="flex items-center space-x-2">
-                <Sliders className="w-4 h-4 text-sky-500" />
+                <SlidersHorizontal className="w-4 h-4 text-sky-500" />
                 <h3 className="font-bold text-base">Sound & Preferences</h3>
               </div>
               <button
                 onClick={() => {
                   stopPreview();
+                  setPreviewingId(null);
                   setIsSettingsOpen(false);
                 }}
                 className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
@@ -1506,11 +1492,14 @@ export default function ZenClockApp() {
             </div>
 
             <div className="flex-1 overflow-y-auto py-4 space-y-4">
-              {/* Volume Slider */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 space-y-2">
+              {/* Master Volume */}
+              <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-slate-800/60 border border-white/20 dark:border-white/10 space-y-2">
                 <div className="flex items-center justify-between text-xs font-semibold">
-                  <span>Volume: {Math.round(volume * 100)}%</span>
-                  <span className="text-slate-400">{isMuted ? 'Muted' : 'Audible'}</span>
+                  <span className="flex items-center space-x-1.5">
+                    <Volume2 className="w-4 h-4 text-sky-500" />
+                    <span>Master Alarm Volume</span>
+                  </span>
+                  <span className="font-mono text-slate-400">{Math.round(volume * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -1523,78 +1512,101 @@ export default function ZenClockApp() {
                     setVolume(v);
                     updateVolume(v, isMuted);
                   }}
-                  disabled={isMuted}
-                  className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500 disabled:opacity-40"
+                  className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
                 />
               </div>
 
-              {/* Sound list */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Android-Inspired Alarm Tone
-                </label>
-                {SOUND_DEFINITIONS.map((s) => {
-                  const isSelected = selectedSound === s.id;
-                  const isPrev = previewingId === s.id;
-                  return (
-                    <div
-                      key={s.id}
-                      onClick={() => setSelectedSound(s.id)}
-                      className={cn(
-                        'flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer',
-                        isSelected
-                          ? 'bg-sky-500/10 border-sky-500/40 text-sky-600 dark:text-sky-400'
-                          : 'bg-white dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
-                      )}
-                    >
-                      <div>
-                        <div className="text-xs font-bold">{s.name}</div>
-                        <div className="text-[10px] text-slate-400">{s.description}</div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isPrev) {
-                            stopPreview();
-                            setPreviewingId(null);
-                          } else {
-                            unlockAudio();
-                            previewSound(s.id, volume);
-                            setPreviewingId(s.id);
-                          }
-                        }}
-                        className="p-1.5 rounded-lg text-xs bg-slate-100 dark:bg-slate-700 hover:bg-sky-500 hover:text-white transition-colors"
-                      >
-                        {isPrev ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* 3D Background Toggle */}
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
-                <div className="text-xs">
-                  <div className="font-semibold">Three.js 3D Background</div>
-                  <div className="text-slate-400 text-[11px]">Subtle orbital particle halo</div>
+              {/* 3D Visualizer Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/40 dark:bg-slate-800/60 border border-white/20 dark:border-white/10">
+                <div className="flex items-center space-x-2">
+                  <Orbit className="w-4 h-4 text-sky-500" />
+                  <div>
+                    <div className="text-xs font-bold">Three.js 3D Particle Halo</div>
+                    <div className="text-[10px] text-slate-400">Subtle floating ambient sphere</div>
+                  </div>
                 </div>
                 <input
                   type="checkbox"
                   checked={enable3D}
                   onChange={(e) => setEnable3D(e.target.checked)}
-                  className="w-4 h-4 accent-sky-500 rounded cursor-pointer"
+                  className="rounded text-sky-500 focus:ring-sky-500 w-4 h-4 cursor-pointer"
                 />
+              </div>
+
+              {/* Alarm Sounds List (User Uploads + Classics) */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">
+                  Alarm Sounds ({SOUND_DEFINITIONS.length} Available)
+                </span>
+                {SOUND_DEFINITIONS.map((sound) => {
+                  const isSelected = selectedSound === sound.id;
+                  const isPlayingThis = previewingId === sound.id;
+
+                  return (
+                    <div
+                      key={sound.id}
+                      onClick={() => {
+                        setSelectedSound(sound.id);
+                        unlockAudio();
+                      }}
+                      className={cn(
+                        'flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all',
+                        isSelected
+                          ? 'bg-sky-500/10 border-sky-500 text-sky-500 shadow-sm'
+                          : 'bg-white/40 dark:bg-slate-800/60 border-white/20 dark:border-white/10 hover:border-slate-300 dark:hover:border-slate-700'
+                      )}
+                    >
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-xs font-bold truncate">{sound.name}</span>
+                          {sound.id.startsWith('custom_alarm') && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              Imported
+                            </span>
+                          )}
+                          {isSelected && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-600 dark:text-sky-400">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-slate-400 truncate mt-0.5">{sound.description}</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          unlockAudio();
+                          if (isPlayingThis) {
+                            stopPreview();
+                            setPreviewingId(null);
+                          } else {
+                            setPreviewingId(sound.id);
+                            previewSound(sound.id, volume);
+                            setTimeout(() => {
+                              setPreviewingId((curr) => (curr === sound.id ? null : curr));
+                            }, 3500);
+                          }
+                        }}
+                        className="py-1 px-2.5 rounded-lg text-xs font-medium bg-white/60 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-sky-500 hover:text-white transition-all shadow-sm shrink-0"
+                      >
+                        {isPlayingThis ? 'Stop' : 'Preview'}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+            <div className="pt-3 border-t border-white/20 dark:border-white/10 flex justify-end shrink-0">
               <button
                 onClick={() => {
                   stopPreview();
+                  setPreviewingId(null);
                   setIsSettingsOpen(false);
                 }}
-                className="py-2 px-5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition-all"
+                className="py-2 px-5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition-all shadow-sm"
               >
                 Done
               </button>
@@ -1603,13 +1615,5 @@ export default function ZenClockApp() {
         </div>
       )}
     </div>
-  );
-}
-
-function Square({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-      <rect x="5" y="5" width="14" height="14" rx="2" />
-    </svg>
   );
 }

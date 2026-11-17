@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>ZenClock — Modern Focus Suite</title>
+  <link rel="icon" type="image/png" href="logo.png">
   <!-- Tailwind CSS via CDN for standalone file:/// execution -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Three.js for 3D background -->
@@ -40,62 +41,95 @@
     }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 9999px; }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+    .dark .glass-panel {
+      background: rgba(10, 15, 26, 0.42);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    }
+    .glass-header {
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .dark .glass-header {
+      background: rgba(3, 7, 18, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .quote-fade {
+      transition: opacity 0.35s ease-in-out;
+    }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 transition-colors duration-300 h-screen w-screen flex flex-col justify-between">
+<body class="bg-slate-100 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 transition-colors duration-300 h-screen w-screen flex flex-col justify-between">
 
   <!-- 3D Three.js Background Canvas -->
   <div id="three-container" class="fixed inset-0 pointer-events-none z-0 opacity-70"></div>
 
-  <!-- TOP HEADER -->
-  <header class="relative z-20 w-full px-4 sm:px-6 py-2.5 border-b border-slate-200/60 dark:border-slate-800/60 bg-white/75 dark:bg-slate-950/75 backdrop-blur-md flex items-center justify-between shrink-0">
-    <!-- Brand -->
+  <!-- TOP HEADER - Glassmorphic Navigation -->
+  <header class="relative z-20 w-full px-4 sm:px-6 py-2.5 glass-header flex items-center justify-between shrink-0 shadow-sm">
+    <!-- Brand with Uploaded Logo -->
     <div class="flex items-center space-x-2.5">
-      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
-        <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+      <div class="relative w-8 h-8 rounded-xl overflow-hidden ring-1 ring-white/20 shadow-md shadow-purple-500/30 flex items-center justify-center bg-black/60 shrink-0">
+        <img src="logo.png" alt="ZenClock Logo" class="w-full h-full object-contain" />
       </div>
-      <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+      <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:via-slate-200 dark:to-indigo-300 bg-clip-text text-transparent">
         ZenClock
       </h1>
     </div>
 
-    <!-- Live System Clock Badge -->
-    <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 text-xs font-mono">
+    <!-- Live System Clock & Cultural Dates Badge -->
+    <div class="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-full bg-white/40 dark:bg-slate-900/50 border border-white/20 dark:border-white/10 backdrop-blur-md text-xs font-mono shadow-sm">
       <svg class="w-3.5 h-3.5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-      <span id="header-live-time" class="font-semibold tabular">--:--:--</span>
-      <span class="text-slate-400">•</span>
-      <span id="header-live-date" class="text-slate-500 dark:text-slate-400">---</span>
+      <span id="header-live-time" class="font-semibold tabular text-slate-800 dark:text-slate-200">--:--:--</span>
+      <span class="text-slate-400 dark:text-slate-600">•</span>
+      <span id="header-live-date" class="text-slate-600 dark:text-slate-300">---</span>
+      <span class="text-slate-400 dark:text-slate-600">•</span>
+      <span id="header-bangla-date" class="text-emerald-600 dark:text-emerald-400 font-medium">🇧🇩 --</span>
+      <span class="text-slate-400 dark:text-slate-600">•</span>
+      <span id="header-hijri-date" class="text-indigo-600 dark:text-indigo-300 font-medium">🌙 --</span>
     </div>
 
     <!-- Header Actions -->
     <div class="flex items-center space-x-1.5 sm:space-x-2">
       <!-- Layout Style Pills -->
-      <div class="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-xl p-0.5 border border-slate-200/60 dark:border-slate-700/60 text-xs">
-        <button id="style-btn-zen" onclick="setDesignStyle('zen')" class="px-2.5 py-1 rounded-lg font-semibold bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all">Zen</button>
-        <button id="style-btn-studio" onclick="setDesignStyle('studio')" class="px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all">Studio</button>
-        <button id="style-btn-cyber" onclick="setDesignStyle('cyber')" class="px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all">Cyber</button>
-        <button id="style-btn-spatial" onclick="setDesignStyle('spatial')" class="px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all">Spatial</button>
+      <div class="flex items-center bg-white/40 dark:bg-slate-900/50 backdrop-blur-md rounded-xl p-0.5 border border-white/20 dark:border-white/10 text-xs">
+        <button id="style-btn-zen" onclick="setDesignStyle('zen')" class="px-2.5 py-1 rounded-lg font-semibold bg-white dark:bg-slate-800 text-sky-500 shadow-sm transition-all">Zen</button>
+        <button id="style-btn-studio" onclick="setDesignStyle('studio')" class="px-2.5 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Studio</button>
+        <button id="style-btn-cyber" onclick="setDesignStyle('cyber')" class="px-2.5 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Cyber</button>
+        <button id="style-btn-spatial" onclick="setDesignStyle('spatial')" class="px-2.5 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Spatial</button>
       </div>
 
       <!-- Mute Toggle -->
-      <button id="mute-btn" onclick="toggleMute()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Toggle Mute [M]">
+      <button id="mute-btn" onclick="toggleMute()" class="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all backdrop-blur-md" title="Toggle Mute [M]">
         <svg id="mute-icon-unmuted" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
         <svg id="mute-icon-muted" class="w-4 h-4 text-rose-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12 0l-6-6m0 6l6-6"></path></svg>
       </button>
 
       <!-- Settings / Sounds Trigger -->
-      <button onclick="openSettingsModal()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Sound & Preferences">
+      <button onclick="openSettingsModal()" class="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all backdrop-blur-md" title="Sound & Preferences">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
       </button>
 
       <!-- Theme Toggle -->
-      <button onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Toggle Theme">
+      <button onclick="toggleTheme()" class="p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all backdrop-blur-md" title="Toggle Theme">
         <svg id="theme-icon-sun" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
         <svg id="theme-icon-moon" class="w-4 h-4 text-slate-600 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
       </button>
 
       <!-- Fullscreen Toggle -->
-      <button onclick="toggleFullscreen()" class="hidden sm:flex p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" title="Toggle Fullscreen">
+      <button onclick="toggleFullscreen()" class="hidden sm:flex p-2 rounded-xl bg-white/40 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800 transition-all backdrop-blur-md" title="Toggle Fullscreen">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
       </button>
     </div>
@@ -104,27 +138,27 @@
   <!-- MAIN SINGLE-PAGE NO-SCROLL DASHBOARD -->
   <main class="relative z-10 flex-1 w-full max-w-7xl mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-5 min-h-0">
     
-    <!-- LEFT PANEL: FOCUS & STUDY SUITE (7 Cols) -->
-    <div class="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg relative min-h-0">
+    <!-- LEFT PANEL: FOCUS & STUDY SUITE (7 Cols - Glassmorphic) -->
+    <div class="lg:col-span-7 flex flex-col justify-between p-4 sm:p-6 rounded-3xl glass-panel relative min-h-0">
       
       <!-- Mode Chips Bar -->
-      <div class="flex items-center space-x-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 max-w-full overflow-x-auto shrink-0">
-        <button id="mode-countdown" onclick="switchTimerMode('countdown', 1500)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all">Custom Timer</button>
-        <button id="mode-pomodoro" onclick="switchTimerMode('pomodoro', 1500)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Pomodoro (25m)</button>
-        <button id="mode-deep" onclick="switchTimerMode('deep_work', 3000)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Deep Work (50m)</button>
-        <button id="mode-short" onclick="switchTimerMode('short_break', 300)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Short Break (5m)</button>
-        <button id="mode-long" onclick="switchTimerMode('long_break', 900)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all">Long Break (15m)</button>
+      <div class="flex items-center space-x-1.5 p-1 rounded-2xl bg-white/40 dark:bg-slate-900/50 border border-white/20 dark:border-white/10 backdrop-blur-md max-w-full overflow-x-auto shrink-0">
+        <button id="mode-countdown" onclick="switchTimerMode('countdown', 1500)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-white dark:bg-slate-800 text-sky-500 shadow-sm transition-all">Custom Timer</button>
+        <button id="mode-pomodoro" onclick="switchTimerMode('pomodoro', 1500)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Pomodoro (25m)</button>
+        <button id="mode-deep" onclick="switchTimerMode('deep_work', 3000)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Deep Work (50m)</button>
+        <button id="mode-short" onclick="switchTimerMode('short_break', 300)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Short Break (5m)</button>
+        <button id="mode-long" onclick="switchTimerMode('long_break', 900)" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Long Break (15m)</button>
       </div>
 
       <!-- TIMER VISUALIZATION CENTERPIECE -->
-      <div id="timer-display-container" class="flex-1 flex flex-col items-center justify-center my-2 sm:my-4 relative">
+      <div id="timer-display-container" class="flex-1 flex flex-col items-center justify-center my-2 sm:my-3 relative">
         
         <!-- 1. Zen Layout -->
         <div id="layout-zen" class="relative flex items-center justify-center">
           <div id="zen-glow" class="absolute inset-4 rounded-full blur-2xl transition-all duration-1000 bg-sky-500/10"></div>
           <div class="relative w-52 h-52 sm:w-64 sm:h-64 flex items-center justify-center">
             <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 260 260">
-              <circle cx="130" cy="130" r="110" class="stroke-slate-200/60 dark:stroke-slate-800/70" stroke-width="5" fill="transparent" />
+              <circle cx="130" cy="130" r="110" class="stroke-slate-300/40 dark:stroke-slate-800/70" stroke-width="5" fill="transparent" />
               <circle id="zen-arc" cx="130" cy="130" r="110" stroke="#38bdf8" stroke-width="6" stroke-dasharray="691.15" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" class="transition-[stroke-dashoffset] duration-200 ease-linear" />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
@@ -134,17 +168,17 @@
           </div>
         </div>
 
-        <!-- 2. Studio Layout (Hidden by default) -->
+        <!-- 2. Studio Layout -->
         <div id="layout-studio" class="relative w-56 h-56 sm:w-68 sm:h-68 flex items-center justify-center hidden">
           <svg id="studio-svg" class="w-full h-full -rotate-90 transform" viewBox="0 0 280 280"></svg>
-          <div class="absolute inset-10 rounded-full bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center shadow-lg">
+          <div class="absolute inset-10 rounded-full bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border border-white/30 dark:border-white/10 flex flex-col items-center justify-center shadow-lg">
             <span id="timer-digits-studio" onclick="openCustomPicker()" class="text-5xl sm:text-6xl font-mono font-extrabold tracking-tight tabular text-amber-500 cursor-pointer">25:00</span>
             <span id="studio-percent" class="text-[10px] font-mono font-bold tracking-widest uppercase text-slate-400 mt-1">0% COMPLETE</span>
           </div>
         </div>
 
-        <!-- 3. Cyber Layout (Hidden by default) -->
-        <div id="layout-cyber" class="w-full max-w-sm p-5 rounded-2xl bg-slate-950/90 border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative hidden">
+        <!-- 3. Cyber Layout -->
+        <div id="layout-cyber" class="w-full max-w-sm p-5 rounded-2xl bg-slate-950/80 backdrop-blur-xl border-2 border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.15)] relative hidden">
           <div class="flex items-center justify-between text-[10px] font-mono text-cyan-400 mb-2">
             <span>SYS://CYBER_TIMER</span>
             <span id="cyber-status">STATUS: STANDBY</span>
@@ -157,15 +191,15 @@
           </div>
         </div>
 
-        <!-- 4. Spatial 3D Layout (Hidden by default) -->
-        <div id="layout-spatial" class="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-indigo-500/10 via-slate-900/70 to-purple-500/10 border border-white/20 dark:border-white/10 shadow-2xl flex flex-col items-center justify-center p-4 hidden">
+        <!-- 4. Spatial 3D Layout -->
+        <div id="layout-spatial" class="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-indigo-500/10 via-slate-900/60 to-purple-500/10 border border-white/20 dark:border-white/10 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center p-4 hidden">
           <svg class="w-5 h-5 text-indigo-400 animate-spin mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2" stroke-dasharray="16" /></svg>
           <span id="timer-digits-spatial" onclick="openCustomPicker()" class="text-5xl sm:text-6xl font-mono font-bold text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] cursor-pointer tabular">25:00</span>
           <span class="text-[10px] font-mono uppercase tracking-widest text-indigo-300/80 mt-1">Spatial Ready</span>
         </div>
 
         <!-- Pomodoro Cycle Dots -->
-        <div id="pomodoro-cycle-bar" class="mt-3 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 hidden">
+        <div id="pomodoro-cycle-bar" class="mt-2.5 flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 hidden">
           <span>Cycle:</span>
           <div class="flex items-center space-x-1.5">
             <div id="p-dot-1" class="h-2 w-5 rounded-full bg-sky-500 transition-all"></div>
@@ -179,11 +213,30 @@
         </div>
       </div>
 
+      <!-- MOTIVATIONAL QUOTE GLASS BANNER (Cycles every 1 minute) -->
+      <div class="w-full px-3.5 py-2 my-1 rounded-2xl bg-white/30 dark:bg-white/[0.03] border border-white/30 dark:border-white/[0.08] backdrop-blur-md flex items-center justify-between text-xs transition-all shrink-0">
+        <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+          <div class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+          </div>
+          <div id="quote-wrapper" class="flex-1 min-w-0 quote-fade">
+            <span id="quote-text" class="italic text-slate-700 dark:text-slate-200 truncate block text-[11px] sm:text-xs">&ldquo;The secret of getting ahead is getting started.&rdquo;</span>
+            <span id="quote-author" class="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">— Mark Twain</span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1.5 pl-2 shrink-0">
+          <span id="quote-timer-pill" class="text-[9px] font-mono text-slate-400 dark:text-slate-500 bg-white/20 dark:bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/10" title="Updates every 60s">60s</span>
+          <button onclick="nextQuoteManual()" class="p-1 rounded-lg hover:bg-white/20 dark:hover:bg-white/10 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors" title="Next quote">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </button>
+        </div>
+      </div>
+
       <!-- TIMER ACTION CONTROLS -->
-      <div class="flex flex-col items-center space-y-3 shrink-0">
+      <div class="flex flex-col items-center space-y-2.5 shrink-0 pt-1">
         <div class="flex items-center space-x-3 sm:space-x-4">
           <!-- Reset Button -->
-          <button onclick="resetTimer()" class="p-3 sm:p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all active:scale-95" title="Reset Timer">
+          <button onclick="resetTimer()" class="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 hover:bg-white/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 backdrop-blur-md transition-all active:scale-95 shadow-sm" title="Reset Timer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
           </button>
 
@@ -194,40 +247,40 @@
           </button>
 
           <!-- Set Custom Time Trigger -->
-          <button onclick="openCustomPicker()" class="p-3 sm:p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all active:scale-95" title="Set Custom Time">
+          <button onclick="openCustomPicker()" class="p-3 sm:p-3.5 rounded-2xl bg-white/40 dark:bg-slate-900/50 hover:bg-white/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-white/20 dark:border-white/10 backdrop-blur-md transition-all active:scale-95 shadow-sm" title="Set Custom Time">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
           </button>
         </div>
 
         <!-- Quick Presets Bar -->
         <div class="flex items-center space-x-1 sm:space-x-1.5 overflow-x-auto max-w-full py-0.5">
-          <button onclick="addSeconds(60)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+1m</button>
-          <button onclick="addSeconds(300)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+5m</button>
-          <button onclick="addSeconds(600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+10m</button>
-          <button onclick="addSeconds(900)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+15m</button>
-          <button onclick="addSeconds(1500)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+25m</button>
-          <button onclick="addSeconds(3600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:text-sky-500 border border-transparent hover:border-sky-500/30 transition-all shrink-0">+60m</button>
+          <button onclick="addSeconds(60)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0">+1m</button>
+          <button onclick="addSeconds(300)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0">+5m</button>
+          <button onclick="addSeconds(600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0">+10m</button>
+          <button onclick="addSeconds(900)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0">+15m</button>
+          <button onclick="addSeconds(1500)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0">+25m</button>
+          <button onclick="addSeconds(3600)" class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium text-slate-600 dark:text-slate-400 bg-white/30 dark:bg-white/[0.04] hover:text-sky-500 hover:bg-white/60 dark:hover:bg-white/[0.08] border border-white/20 dark:border-white/[0.06] backdrop-blur-sm transition-all shrink-0">+60m</button>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: ANALOG CLOCK + STOPWATCH (5 Cols) -->
+    <!-- RIGHT COLUMN: ANALOG CLOCK + STOPWATCH (5 Cols - Glassmorphic) -->
     <div class="lg:col-span-5 flex flex-col justify-between gap-3 sm:gap-4 min-h-0">
       
       <!-- TOP RIGHT: LIVE ANALOG CLOCK -->
-      <div class="p-3.5 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg flex items-center justify-between min-h-0">
+      <div class="p-3.5 sm:p-4 rounded-3xl glass-panel flex items-center justify-between min-h-0">
         <!-- SVG Clock Face -->
         <div class="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0">
           <svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-md">
-            <circle cx="100" cy="100" r="95" class="fill-slate-100/90 dark:fill-slate-950/90 stroke-slate-300/80 dark:stroke-slate-700/80" stroke-width="2.5" />
-            <circle cx="100" cy="100" r="91" class="fill-white/80 dark:fill-slate-900/60" />
+            <circle cx="100" cy="100" r="95" class="fill-white/40 dark:fill-slate-950/70 stroke-white/40 dark:stroke-slate-700/80" stroke-width="2.5" />
+            <circle cx="100" cy="100" r="91" class="fill-white/60 dark:fill-slate-900/60" />
             
             <!-- Dial Ticks -->
             <g id="analog-dial-ticks"></g>
             
             <!-- Date Window -->
-            <rect x="132" y="91" width="24" height="18" rx="3" class="fill-slate-200 dark:fill-slate-800" />
-            <text id="clock-date-number" x="144" y="104" text-anchor="middle" class="text-[9px] font-bold fill-sky-500 tabular">17</text>
+            <rect x="132" y="91" width="24" height="18" rx="3" class="fill-slate-200/80 dark:fill-slate-800" />
+            <text id="clock-date-number" x="144" y="104" text-anchor="middle" class="text-[9px] font-bold fill-sky-500 tabular">18</text>
 
             <!-- Hands -->
             <g id="hand-hour"><line x1="100" y1="110" x2="100" y2="52" stroke="currentColor" class="stroke-slate-800 dark:stroke-slate-200" stroke-width="4" stroke-linecap="round" /></g>
@@ -241,21 +294,35 @@
           </svg>
         </div>
 
-        <!-- Analog Clock Readouts & Controls -->
+        <!-- Analog Clock Readouts & Cultural Dates -->
         <div class="flex-1 pl-4 flex flex-col justify-center space-y-1.5 min-w-0">
           <span id="clock-timezone" class="text-[10px] font-mono uppercase tracking-widest text-slate-400 truncate">LOCAL TIME</span>
           <div id="clock-digital-display" class="text-xl sm:text-2xl font-mono font-bold tracking-tight tabular text-slate-900 dark:text-white">--:--:--</div>
-          <div id="clock-date-display" class="text-xs font-medium text-slate-500 dark:text-slate-400">---</div>
+          <div id="clock-date-display" class="text-xs font-medium text-slate-600 dark:text-slate-300">---</div>
+          
+          <!-- Cultural Calendar Badges (Bangla & Hijri) -->
+          <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+            <div class="px-2 py-0.5 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[10px] font-medium flex items-center space-x-1">
+              <span>🇧🇩</span>
+              <span id="clock-bangla-date" class="font-mono">--</span>
+            </div>
+            <div class="px-2 py-0.5 rounded-lg bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/25 text-indigo-700 dark:text-indigo-300 text-[10px] font-medium flex items-center space-x-1">
+              <span>🌙</span>
+              <span id="clock-hijri-date" class="font-mono">--</span>
+            </div>
+          </div>
+
+          <!-- Sweep & 12/24H Toggles -->
           <div class="flex items-center space-x-2 pt-1">
-            <button onclick="toggleSweep()" id="btn-sweep" class="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 border border-slate-200/60 dark:border-slate-700/60 transition-colors">Sweep</button>
-            <button onclick="toggle24H()" id="btn-24h" class="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-sky-500 border border-slate-200/60 dark:border-slate-700/60 transition-colors">12H</button>
+            <button onclick="toggleSweep()" id="btn-sweep" class="text-[10px] px-2 py-0.5 rounded-md font-mono bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-white/20 dark:border-white/10 transition-colors">Sweep</button>
+            <button onclick="toggle24H()" id="btn-24h" class="text-[10px] px-2 py-0.5 rounded-md font-mono bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-sky-500 border border-white/20 dark:border-white/10 transition-colors">12H</button>
           </div>
         </div>
       </div>
 
       <!-- BOTTOM RIGHT: PRECISION CHRONOGRAPH / STOPWATCH -->
-      <div class="flex-1 p-3.5 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-900/70 border border-slate-200/70 dark:border-slate-800/70 backdrop-blur-xl shadow-lg flex flex-col justify-between min-h-0">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
+      <div class="flex-1 p-3.5 sm:p-4 rounded-3xl glass-panel flex flex-col justify-between min-h-0">
+        <div class="flex items-center justify-between pb-2 border-b border-white/15 dark:border-white/10 shrink-0">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Chronograph</span>
           <button id="copy-laps-btn" onclick="copyLaps()" class="text-[11px] text-slate-400 hover:text-sky-500 flex items-center space-x-1 transition-colors">
             <span>Copy</span>
@@ -271,38 +338,38 @@
         <!-- Stopwatch Buttons -->
         <div id="sw-controls" class="flex items-center justify-center space-x-2 py-1 shrink-0">
           <button id="sw-start-btn" onclick="startStopwatch()" class="flex-1 py-1.5 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition-all">Start</button>
-          <button id="sw-lap-btn" onclick="recordStopwatchLap()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs hidden border border-slate-200/60 dark:border-slate-700/60">Lap</button>
+          <button id="sw-lap-btn" onclick="recordStopwatchLap()" class="flex-1 py-1.5 px-3 rounded-xl bg-white/40 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-semibold text-xs hidden border border-white/20 dark:border-white/10">Lap</button>
           <button id="sw-pause-btn" onclick="pauseStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-xs hidden">Pause</button>
-          <button id="sw-reset-btn" onclick="resetStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs hidden border border-slate-200/60 dark:border-slate-700/60">Reset</button>
+          <button id="sw-reset-btn" onclick="resetStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-white/40 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold text-xs hidden border border-white/20 dark:border-white/10">Reset</button>
           <button id="sw-resume-btn" onclick="resumeStopwatch()" class="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-semibold text-xs hidden">Resume</button>
         </div>
 
         <!-- Laps List -->
-        <div id="sw-laps-list" class="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 text-xs font-mono mt-1">
+        <div id="sw-laps-list" class="flex-1 min-h-[70px] max-h-[110px] overflow-y-auto divide-y divide-white/10 dark:divide-white/[0.06] text-xs font-mono mt-1">
           <div class="h-full flex items-center justify-center text-slate-400 text-[11px] italic">Press &quot;Lap&quot; while running to record splits</div>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- COMPACT FOOTER -->
-  <footer class="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-slate-200/60 dark:border-slate-800/60 bg-white/75 dark:bg-slate-950/75 backdrop-blur-md flex items-center justify-between text-xs text-slate-400 shrink-0">
+  <!-- COMPACT FOOTER - Glassmorphic -->
+  <footer class="relative z-20 w-full px-4 sm:px-6 py-2 border-t border-white/15 dark:border-white/10 glass-header flex items-center justify-between text-xs text-slate-400 shrink-0">
     <div class="flex items-center space-x-3">
       <span>[Space] / [ESC] Dismiss Alert</span>
       <span>•</span>
       <span>[M] Mute Sound</span>
     </div>
     <div class="flex items-center space-x-2">
-      <span>Sound: <strong id="footer-sound-name">Oxygen</strong></span>
+      <span>Alarm: <strong id="footer-sound-name" class="text-slate-700 dark:text-slate-200">Alarm 1 (Melody)</strong></span>
       <span>•</span>
       <button onclick="openSettingsModal()" class="hover:text-sky-500 underline underline-offset-2 transition-colors font-medium">Preferences</button>
     </div>
   </footer>
 
   <!-- CUSTOM TIME PICKER MODAL (WORKING 100%) -->
-  <div id="modal-custom-picker" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
-    <div class="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+  <div id="modal-custom-picker" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md hidden">
+    <div class="w-full max-w-sm rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-white/30 dark:border-white/10 p-6 shadow-2xl backdrop-blur-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-white/20 dark:border-white/10">
         <h3 class="font-bold text-base">Set Custom Duration</h3>
         <button onclick="closeCustomPicker()" class="p-1 rounded-full text-slate-400 hover:text-white">✕</button>
       </div>
@@ -310,58 +377,58 @@
       <div class="flex items-center justify-center space-x-4 my-6">
         <!-- Hours -->
         <div class="flex flex-col items-center">
-          <button onclick="stepCustomHours(1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+</button>
+          <button onclick="stepCustomHours(1)" class="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white">+</button>
           <input id="input-custom-hrs" type="number" min="0" max="23" value="0" class="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular" />
-          <button onclick="stepCustomHours(-1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">-</button>
+          <button onclick="stepCustomHours(-1)" class="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white">-</button>
           <span class="text-[10px] font-semibold text-slate-400 uppercase mt-1">Hours</span>
         </div>
         <span class="text-2xl font-mono font-bold text-slate-400 pb-5">:</span>
         <!-- Mins -->
         <div class="flex flex-col items-center">
-          <button onclick="stepCustomMins(1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+</button>
+          <button onclick="stepCustomMins(1)" class="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white">+</button>
           <input id="input-custom-mins" type="number" min="0" max="59" value="25" class="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular" />
-          <button onclick="stepCustomMins(-1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">-</button>
+          <button onclick="stepCustomMins(-1)" class="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white">-</button>
           <span class="text-[10px] font-semibold text-slate-400 uppercase mt-1">Mins</span>
         </div>
         <span class="text-2xl font-mono font-bold text-slate-400 pb-5">:</span>
         <!-- Secs -->
         <div class="flex flex-col items-center">
-          <button onclick="stepCustomSecs(1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+</button>
+          <button onclick="stepCustomSecs(1)" class="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white">+</button>
           <input id="input-custom-secs" type="number" min="0" max="59" value="0" class="text-3xl font-mono font-bold my-1 w-14 text-center bg-transparent tabular" />
-          <button onclick="stepCustomSecs(-1)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">-</button>
+          <button onclick="stepCustomSecs(-1)" class="p-1.5 rounded-lg bg-white/50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-white">-</button>
           <span class="text-[10px] font-semibold text-slate-400 uppercase mt-1">Secs</span>
         </div>
       </div>
 
       <div class="flex items-center space-x-2">
-        <button onclick="closeCustomPicker()" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
-        <button onclick="applyCustomPicker()" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/25">Apply Duration</button>
+        <button onclick="closeCustomPicker()" class="flex-1 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-white/40 dark:hover:bg-slate-800">Cancel</button>
+        <button onclick="applyCustomPicker()" class="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/25">Apply Duration</button>
       </div>
     </div>
   </div>
 
   <!-- SOUNDS & PREFERENCES MODAL -->
-  <div id="modal-settings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden">
-    <div class="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl flex flex-col max-h-[85vh]">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+  <div id="modal-settings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md hidden">
+    <div class="w-full max-w-md rounded-3xl bg-white/95 dark:bg-slate-900/95 border border-white/30 dark:border-white/10 p-6 shadow-2xl backdrop-blur-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-white/20 dark:border-white/10 shrink-0">
         <h3 class="font-bold text-base">Sound & Preferences</h3>
         <button onclick="closeSettingsModal()" class="p-1 rounded-full text-slate-400 hover:text-white">✕</button>
       </div>
 
       <div class="flex-1 overflow-y-auto py-4 space-y-4">
         <!-- Volume Slider -->
-        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800 space-y-2">
+        <div class="p-3.5 rounded-2xl bg-white/40 dark:bg-slate-800/60 border border-white/20 dark:border-white/10 space-y-2">
           <div class="flex items-center justify-between text-xs font-semibold">
-            <span id="settings-volume-label">Volume: 80%</span>
+            <span id="settings-volume-label">Volume: 85%</span>
           </div>
-          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.8" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500" />
+          <input id="settings-volume-slider" oninput="setMasterVolume(this.value)" type="range" min="0" max="1" step="0.05" value="0.85" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500" />
         </div>
 
-        <!-- Sounds List -->
+        <!-- Sounds List (Imported Alarms + Classics) -->
         <div class="space-y-1.5" id="settings-sound-list"></div>
       </div>
 
-      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+      <div class="pt-3 border-t border-white/20 dark:border-white/10 flex justify-end shrink-0">
         <button onclick="closeSettingsModal()" class="py-2 px-5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition-all">Done</button>
       </div>
     </div>
@@ -383,22 +450,104 @@
 
   <!-- CLIENT-SIDE SCRIPT LOGIC (100% STANDALONE COMPLIANT) -->
   <script>
-    // Audio synthesizer & playback engine
-    const SOUNDS = [
-      { id: 'oxygen', name: 'Oxygen', desc: 'Warm Android marimba' },
-      { id: 'argon', name: 'Argon', desc: 'Upbeat electronic chime' },
-      { id: 'cesium', name: 'Cesium', desc: 'Cascading harp bells' },
-      { id: 'digital_beep', name: 'Digital Beep', desc: 'Classic dual beeper' },
-      { id: 'zen_bowl', name: 'Zen Bowl', desc: 'Deep singing bowl' },
-      { id: 'gentle_chime', name: 'Gentle Chimes', desc: 'Crystalline wind chimes' },
-      { id: 'morning_breeze', name: 'Morning Breeze', desc: 'Acoustic sunrise melody' },
+    // 50 Motivational Quotes
+    const MOTIVATIONAL_QUOTES = [
+      { text: "Do not wait; the time will never be 'just right'. Start where you stand.", author: "Napoleon Hill" },
+      { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca" },
+      { text: "Focus is a muscle. The more you practice single-tasking, the stronger it gets.", author: "Zen Mind" },
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "Simplicity is the prerequisite for great focus and mastery.", author: "Edsger W. Dijkstra" },
+      { text: "Small disciplines repeated with consistency every day lead to great achievements.", author: "John C. Maxwell" },
+      { text: "Time is what we want most, but what we use worst.", author: "William Penn" },
+      { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" },
+      { text: "One hour of deep focus beats an entire day of distracted multitasking.", author: "Cal Newport" },
+      { text: "Peace comes from within. Do not seek it without.", author: "Buddha" },
+      { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+      { text: "You don't have to be extreme, just consistent.", author: "James Clear" },
+      { text: "Almost everything will work again if you unplug it for a few minutes, including you.", author: "Anne Lamott" },
+      { text: "Breathe in clarity, breathe out distraction.", author: "Zen Proverb" },
+      { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
+      { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
+      { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+      { text: "Dwell on the beauty of life. Watch the stars, and see yourself running with them.", author: "Marcus Aurelius" },
+      { text: "Great things are done by a series of small things brought together.", author: "Vincent van Gogh" },
+      { text: "Energy flows where attention goes.", author: "Tony Robbins" },
+      { text: "Don't count the days, make the days count.", author: "Muhammad Ali" },
+      { text: "Quiet the mind, and the soul will speak.", author: "Ma Jaya Sati Bhagavati" },
+      { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+      { text: "The present moment is filled with joy and peace. If you are attentive, you will see it.", author: "Thich Nhat Hanh" },
+      { text: "Patience and perseverance have a magical effect before which difficulties disappear.", author: "John Quincy Adams" },
+      { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+      { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" },
+      { text: "Mastering others is strength. Mastering yourself is true power.", author: "Lao Tzu" },
+      { text: "Lost time is never found again.", author: "Benjamin Franklin" },
+      { text: "Deep work is the superpower of the 21st century.", author: "Cal Newport" },
+      { text: "Be like water making its way through cracks. Adjust to the object.", author: "Bruce Lee" },
+      { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey" },
+      { text: "Continuous improvement is better than delayed perfection.", author: "Mark Twain" },
+      { text: "The best way out is always through.", author: "Robert Frost" },
+      { text: "What we achieve inwardly will change outer reality.", author: "Plutarch" },
+      { text: "Guard your time as your most precious treasure.", author: "Seneca" },
+      { text: "Begin anywhere. Just do not stand still.", author: "John Cage" },
+      { text: "A year from now you may wish you had started today.", author: "Karen Lamb" },
+      { text: "Calmness is the cradle of power.", author: "Josiah Gilbert Holland" },
+      { text: "Nothing is impossible, the word itself says 'I'm possible'!", author: "Audrey Hepburn" },
+      { text: "An ounce of practice is worth more than tons of preaching.", author: "Mahatma Gandhi" },
+      { text: "Flow with whatever is happening and let your mind be free.", author: "Zhuangzi" },
+      { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
+      { text: "Every morning we are born again. What we do today is what matters most.", author: "Buddha" },
+      { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+      { text: "The art of living is more like wrestling than dancing.", author: "Marcus Aurelius" },
+      { text: "Step by step walk the thousand-mile road.", author: "Miyamoto Musashi" },
+      { text: "Nature does not hurry, yet everything is accomplished.", author: "Lao Tzu" },
+      { text: "Your calm mind is the ultimate weapon against your challenges.", author: "Bryant McGill" },
+      { text: "Today is an opportunity to achieve clarity. Don't waste it.", author: "Zen Master" }
     ];
 
-    let currentSound = 'oxygen';
-    let masterVolume = 0.8;
+    let currentQuoteIndex = 0;
+    function updateQuoteUI() {
+      const q = MOTIVATIONAL_QUOTES[currentQuoteIndex];
+      const wrap = document.getElementById('quote-wrapper');
+      if (wrap) wrap.style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('quote-text').textContent = `\u201c${q.text}\u201d`;
+        document.getElementById('quote-author').textContent = `— ${q.author}`;
+        if (wrap) wrap.style.opacity = '1';
+      }, 300);
+    }
+    function nextQuoteManual() {
+      currentQuoteIndex = (currentQuoteIndex + 1) % MOTIVATIONAL_QUOTES.length;
+      updateQuoteUI();
+    }
+    // Rotate every 60 seconds (1 minute)
+    setInterval(() => {
+      currentQuoteIndex = (currentQuoteIndex + 1) % MOTIVATIONAL_QUOTES.length;
+      updateQuoteUI();
+    }, 60000);
+
+    // Audio synthesizer & playback engine (with 5 imported sounds + classics)
+    const SOUNDS = [
+      { id: 'custom_alarm_1', name: 'Alarm 1 (Melody)', desc: 'Uploaded melodious alarm', file: 'sounds/custom_alarm_1.mp3' },
+      { id: 'custom_alarm_2', name: 'Alarm 2 (Pulse)', desc: 'Uploaded rhythmic pulsing alert', file: 'sounds/custom_alarm_2.mp3' },
+      { id: 'custom_alarm_3', name: 'Alarm 3 (Crystal Bell)', desc: 'Uploaded crystal bell chime', file: 'sounds/custom_alarm_3.wav' },
+      { id: 'custom_alarm_4', name: 'Alarm 4 (Deep Chime)', desc: 'Uploaded deep resonance chime', file: 'sounds/custom_alarm_4.wav' },
+      { id: 'custom_alarm_5', name: 'Alarm 5 (Serene Wave)', desc: 'Uploaded serene ambient alarm', file: 'sounds/custom_alarm_5.wav' },
+      { id: 'oxygen', name: 'Oxygen', desc: 'Warm Android marimba', file: 'sounds/oxygen.wav' },
+      { id: 'argon', name: 'Argon', desc: 'Upbeat electronic chime', file: 'sounds/argon.wav' },
+      { id: 'cesium', name: 'Cesium', desc: 'Cascading harp bells', file: 'sounds/cesium.wav' },
+      { id: 'digital_beep', name: 'Digital Beep', desc: 'Classic dual beeper', file: 'sounds/digital_beep.wav' },
+      { id: 'zen_bowl', name: 'Zen Bowl', desc: 'Deep singing bowl', file: 'sounds/zen_bowl.wav' },
+      { id: 'gentle_chime', name: 'Gentle Chimes', desc: 'Crystalline wind chimes', file: 'sounds/gentle_chime.wav' },
+      { id: 'morning_breeze', name: 'Morning Breeze', desc: 'Acoustic sunrise melody', file: 'sounds/morning_breeze.wav' },
+    ];
+
+    let currentSound = 'custom_alarm_1';
+    let masterVolume = 0.85;
     let isMuted = false;
     let audioCtx = null;
-    let alarmInterval = null;
+    let activeAudioElem = null;
+    let activePreviewElem = null;
+    let alarmSynthInterval = null;
 
     function getAudioCtx() {
       if (!audioCtx) {
@@ -408,7 +557,7 @@
       return audioCtx;
     }
 
-    function playTone(freq1, freq2, duration, type='sine') {
+    function playToneFallback(freq1, freq2, duration, type='sine') {
       if (isMuted) return;
       try {
         const ctx = getAudioCtx();
@@ -427,24 +576,147 @@
       } catch (e) {}
     }
 
-    function playSoundTone(soundId) {
-      if (soundId === 'argon') playTone(739.99, 1479.98, 0.4, 'triangle');
-      else if (soundId === 'cesium') playTone(587.33, 1174.66, 0.6, 'sine');
-      else if (soundId === 'digital_beep') playTone(880, 1760, 0.35, 'square');
-      else if (soundId === 'zen_bowl') playTone(261.63, 523.25, 1.8, 'sine');
-      else if (soundId === 'gentle_chime') playTone(1174.66, 2349.32, 0.5, 'triangle');
-      else if (soundId === 'morning_breeze') playTone(392, 783.99, 0.7, 'sine');
-      else playTone(523.25, 1046.5, 0.5, 'sine');
+    function playSynthBeep(soundId) {
+      if (soundId === 'argon') playToneFallback(739.99, 1479.98, 0.4, 'triangle');
+      else if (soundId === 'cesium') playToneFallback(587.33, 1174.66, 0.6, 'sine');
+      else if (soundId === 'digital_beep') playToneFallback(880, 1760, 0.35, 'square');
+      else if (soundId === 'zen_bowl') playToneFallback(261.63, 523.25, 1.8, 'sine');
+      else if (soundId === 'gentle_chime') playToneFallback(1174.66, 2349.32, 0.5, 'triangle');
+      else if (soundId === 'morning_breeze') playToneFallback(392, 783.99, 0.7, 'sine');
+      else if (soundId === 'custom_alarm_1') playToneFallback(659.25, 1318.5, 0.5, 'triangle');
+      else if (soundId === 'custom_alarm_2') playToneFallback(523.25, 1046.5, 0.3, 'sawtooth');
+      else playToneFallback(523.25, 1046.5, 0.5, 'sine');
+    }
+
+    function previewSoundFile(soundId) {
+      if (activePreviewElem) {
+        try { activePreviewElem.pause(); activePreviewElem.currentTime = 0; } catch (e) {}
+        activePreviewElem = null;
+      }
+      const s = SOUNDS.find(x => x.id === soundId) || SOUNDS[0];
+      try {
+        const audio = new Audio(s.file || ('sounds/' + s.id + '.wav'));
+        audio.volume = masterVolume;
+        activePreviewElem = audio;
+        const p = audio.play();
+        if (p) p.catch(() => playSynthBeep(soundId));
+      } catch (e) {
+        playSynthBeep(soundId);
+      }
     }
 
     function startAlarmLoop(soundId) {
       stopAlarmLoop();
-      playSoundTone(soundId);
-      alarmInterval = setInterval(() => playSoundTone(soundId), 900);
+      if (isMuted) return; // Mute disables audio, but visual alert still triggers!
+
+      const s = SOUNDS.find(x => x.id === soundId) || SOUNDS[0];
+      try {
+        const audio = new Audio(s.file || ('sounds/' + s.id + '.wav'));
+        audio.loop = true;
+        audio.volume = masterVolume;
+        activeAudioElem = audio;
+        const p = audio.play();
+        if (p) {
+          p.catch(() => {
+            playSynthBeep(soundId);
+            alarmSynthInterval = setInterval(() => playSynthBeep(soundId), 900);
+          });
+        }
+      } catch (e) {
+        playSynthBeep(soundId);
+        alarmSynthInterval = setInterval(() => playSynthBeep(soundId), 900);
+      }
     }
 
     function stopAlarmLoop() {
-      if (alarmInterval) { clearInterval(alarmInterval); alarmInterval = null; }
+      if (activeAudioElem) {
+        try { activeAudioElem.pause(); activeAudioElem.currentTime = 0; } catch (e) {}
+        activeAudioElem = null;
+      }
+      if (activePreviewElem) {
+        try { activePreviewElem.pause(); activePreviewElem.currentTime = 0; } catch (e) {}
+        activePreviewElem = null;
+      }
+      if (alarmSynthInterval) {
+        clearInterval(alarmSynthInterval);
+        alarmSynthInterval = null;
+      }
+    }
+
+    // Bangla & Hijri Date Converters
+    function getBanglaDate(date = new Date()) {
+      const y = date.getFullYear();
+      let bYear = y - 593;
+      let apr14 = new Date(y, 3, 14);
+      if (date < apr14) {
+        bYear = y - 594;
+        apr14 = new Date(y - 1, 3, 14);
+      }
+      const banglaMonths = [
+        'Boishakh', 'Jyoishtho', 'Asharh', 'Srabon', 
+        'Bhadro', 'Ashwin', 'Kartik', 'Ograhayon', 
+        'Poush', 'Magh', 'Falgun', 'Choitro'
+      ];
+      const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+      const falgunDays = isLeap ? 30 : 29;
+      const monthLengths = [31, 31, 31, 31, 31, 31, 30, 30, 30, 30, falgunDays, 30];
+      const oneDay = 24 * 60 * 60 * 1000;
+      const utcDate = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+      const utcApr14 = Date.UTC(apr14.getFullYear(), apr14.getMonth(), apr14.getDate());
+      let diffDays = Math.floor((utcDate - utcApr14) / oneDay);
+
+      let bMonthIndex = 0;
+      while (diffDays >= monthLengths[bMonthIndex] && bMonthIndex < 11) {
+        diffDays -= monthLengths[bMonthIndex];
+        bMonthIndex++;
+      }
+      const bDay = diffDays + 1;
+      return `${bDay} ${banglaMonths[bMonthIndex]} ${bYear}`;
+    }
+
+    function getHijriDate(date = new Date()) {
+      try {
+        const formatter = new Intl.DateTimeFormat('en-TN-u-ca-islamic-umalqura', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+        const parts = formatter.formatToParts(date);
+        let day = '', month = '', year = '';
+        for (const p of parts) {
+          if (p.type === 'day') day = p.value;
+          if (p.type === 'month') month = p.value;
+          if (p.type === 'year') year = p.value;
+        }
+        if (day && month && year) {
+          return `${day} ${month} ${year} AH`;
+        }
+      } catch (e) {}
+
+      // Tabular Islamic fallback
+      const d = date.getDate();
+      const m = date.getMonth();
+      const y = date.getFullYear();
+      let jd = Math.floor((1461 * (y + 4800 + Math.floor((m - 14) / 12))) / 4) +
+               Math.floor((367 * (m - 2 - 12 * Math.floor((m - 14) / 12))) / 12) -
+               Math.floor((3 * Math.floor((y + 4900 + Math.floor((m - 14) / 12)) / 100)) / 4) +
+               d - 32075;
+      let l = jd - 1948440 + 10632;
+      let n = Math.floor((l - 1) / 10631);
+      l = l - 10631 * n + 354;
+      let j = (Math.floor((10985 - l) / 5316)) * (Math.floor((50 * l) / 17719)) +
+              (Math.floor(l / 5670)) * (Math.floor((43 * l) / 15238));
+      l = l - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50)) -
+          (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
+      let hm = Math.floor((24 * l) / 709);
+      let hd = l - Math.floor((709 * hm) / 24);
+      let hy = 30 * n + j - 30;
+      const islamicMonths = [
+        'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
+        'Jumada al-Ula', 'Jumada al-Thani', 'Rajab', "Sha'ban",
+        'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'
+      ];
+      return `${hd} ${islamicMonths[hm - 1] || 'Islamic Month'} ${hy} AH`;
     }
 
     // Timer Variables
@@ -518,7 +790,7 @@
           timerRemaining = Math.ceil(diffMs / 1000);
           updateTimerUI();
         }
-      }, 150);
+      }, 100);
     }
 
     function pauseTimer(ended = false) {
@@ -552,29 +824,36 @@
     }
 
     function addSeconds(sec) {
-      timerDuration = Math.max(1, timerDuration + sec);
-      timerRemaining = Math.max(1, timerRemaining + sec);
-      if (timerTargetEnd) timerTargetEnd += sec * 1000;
+      if (isTimerRunning && timerTargetEnd) {
+        timerTargetEnd += sec * 1000;
+        timerRemaining += sec;
+        timerDuration += sec;
+      } else {
+        timerDuration += sec;
+        timerRemaining = timerDuration;
+      }
       updateTimerUI();
     }
 
-    function switchTimerMode(mode, sec) {
+    function switchTimerMode(mode, dur) {
       currentMode = mode;
-      timerDuration = sec;
-      timerRemaining = sec;
+      timerDuration = dur;
+      timerRemaining = dur;
       pauseTimer(true);
 
       const modes = ['countdown', 'pomodoro', 'deep', 'short', 'long'];
       modes.forEach(m => {
         const btn = document.getElementById(`mode-${m}`);
-        if (btn) btn.className = 'flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-500 hover:text-white transition-all';
+        if (m === mode || (mode === 'deep_work' && m === 'deep') || (mode === 'short_break' && m === 'short') || (mode === 'long_break' && m === 'long')) {
+          btn.className = 'flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-white dark:bg-slate-800 text-sky-500 shadow-sm transition-all';
+        } else {
+          btn.className = 'flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all';
+        }
       });
-      const activeBtn = document.getElementById(`mode-${mode === 'deep_work' ? 'deep' : mode === 'short_break' ? 'short' : mode === 'long_break' ? 'long' : mode}`);
-      if (activeBtn) activeBtn.className = 'flex-1 py-1.5 px-2.5 rounded-xl text-xs font-semibold whitespace-nowrap bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all';
 
-      const cycleBar = document.getElementById('pomodoro-cycle-bar');
-      if (mode === 'pomodoro') cycleBar.classList.remove('hidden');
-      else cycleBar.classList.add('hidden');
+      const pBar = document.getElementById('pomodoro-cycle-bar');
+      if (mode === 'pomodoro') pBar.classList.remove('hidden');
+      else pBar.classList.add('hidden');
 
       updateTimerUI();
     }
@@ -589,7 +868,7 @@
       }
     }
 
-    // Custom Picker Modal Logic
+    // Custom Picker Modal
     function openCustomPicker() {
       const h = Math.floor(timerDuration / 3600);
       const m = Math.floor((timerDuration % 3600) / 60);
@@ -602,47 +881,76 @@
     function closeCustomPicker() {
       document.getElementById('modal-custom-picker').classList.add('hidden');
     }
-    function stepCustomHours(delta) {
-      const el = document.getElementById('input-custom-hrs');
-      el.value = Math.max(0, Math.min(23, (parseInt(el.value) || 0) + delta));
+    function stepCustomHours(v) {
+      const inp = document.getElementById('input-custom-hrs');
+      inp.value = Math.max(0, Math.min(23, (parseInt(inp.value) || 0) + v));
     }
-    function stepCustomMins(delta) {
-      const el = document.getElementById('input-custom-mins');
-      let val = (parseInt(el.value) || 0) + delta;
-      if (val > 59) val = 0; if (val < 0) val = 59;
-      el.value = val;
+    function stepCustomMins(v) {
+      const inp = document.getElementById('input-custom-mins');
+      let val = (parseInt(inp.value) || 0) + v;
+      if (val > 59) val = 0;
+      if (val < 0) val = 59;
+      inp.value = val;
     }
-    function stepCustomSecs(delta) {
-      const el = document.getElementById('input-custom-secs');
-      let val = (parseInt(el.value) || 0) + delta;
-      if (val > 59) val = 0; if (val < 0) val = 59;
-      el.value = val;
+    function stepCustomSecs(v) {
+      const inp = document.getElementById('input-custom-secs');
+      let val = (parseInt(inp.value) || 0) + v;
+      if (val > 59) val = 0;
+      if (val < 0) val = 59;
+      inp.value = val;
     }
     function applyCustomPicker() {
       const h = parseInt(document.getElementById('input-custom-hrs').value) || 0;
       const m = parseInt(document.getElementById('input-custom-mins').value) || 0;
       const s = parseInt(document.getElementById('input-custom-secs').value) || 0;
-      const totalSec = Math.max(1, h * 3600 + m * 60 + s);
-      timerDuration = totalSec;
-      timerRemaining = totalSec;
-      pauseTimer(true);
-      updateTimerUI();
+      const total = h * 3600 + m * 60 + s;
+      if (total > 0) {
+        timerDuration = total;
+        timerRemaining = total;
+        pauseTimer(true);
+        updateTimerUI();
+      }
       closeCustomPicker();
     }
 
-    // Layout Style Switcher
+    // Design Style Selector
     function setDesignStyle(style) {
       currentDesignStyle = style;
       ['zen', 'studio', 'cyber', 'spatial'].forEach(s => {
-        document.getElementById(`layout-${s}`).classList.add('hidden');
-        document.getElementById(`style-btn-${s}`).className = 'px-2.5 py-1 rounded-lg font-medium text-slate-500 hover:text-white transition-all';
+        const el = document.getElementById(`layout-${s}`);
+        const btn = document.getElementById(`style-btn-${s}`);
+        if (s === style) {
+          el.classList.remove('hidden');
+          btn.className = 'px-2.5 py-1 rounded-lg font-semibold bg-white dark:bg-slate-800 text-sky-500 shadow-sm transition-all text-xs';
+        } else {
+          el.classList.add('hidden');
+          btn.className = 'px-2.5 py-1 rounded-lg font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all text-xs';
+        }
       });
-      document.getElementById(`layout-${style}`).classList.remove('hidden');
-      document.getElementById(`style-btn-${style}`).className = 'px-2.5 py-1 rounded-lg font-semibold bg-white dark:bg-slate-900 text-sky-500 shadow-sm transition-all';
-      updateTimerUI();
+      if (style === 'studio') renderStudioDial();
     }
 
-    // Alarm Alert Handling
+    function renderStudioDial() {
+      const svg = document.getElementById('studio-svg');
+      let lines = '';
+      const progress = timerDuration > 0 ? (timerDuration - timerRemaining) / timerDuration : 0;
+      for (let i = 0; i < 48; i++) {
+        const rad = (i / 48) * 360 * (Math.PI / 180);
+        const isActive = i <= Math.floor(progress * 48);
+        const isMajor = i % 4 === 0;
+        const r1 = isMajor ? 114 : 118;
+        const r2 = 130;
+        const x1 = 140 + r1 * Math.cos(rad);
+        const y1 = 140 + r1 * Math.sin(rad);
+        const x2 = 140 + r2 * Math.cos(rad);
+        const y2 = 140 + r2 * Math.sin(rad);
+        const strokeColor = isActive ? '#f59e0b' : 'rgba(148, 163, 184, 0.3)';
+        lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${strokeColor}" stroke-width="${isMajor ? 3 : 1.5}" stroke-linecap="round" />`;
+      }
+      svg.innerHTML = lines;
+    }
+
+    // Alarm Alert (Flashing background + sound loop)
     function triggerAlarm() {
       document.body.classList.add('alarm-active');
       document.getElementById('alarm-overlay').classList.remove('hidden');
@@ -787,6 +1095,14 @@
       document.getElementById('clock-date-display').textContent = dateStr;
       document.getElementById('header-live-date').textContent = dateStr;
 
+      // Cultural Dates
+      const bDate = getBanglaDate(d);
+      const hDate = getHijriDate(d);
+      document.getElementById('clock-bangla-date').textContent = bDate;
+      document.getElementById('clock-hijri-date').textContent = hDate;
+      document.getElementById('header-bangla-date').textContent = `🇧🇩 ${bDate}`;
+      document.getElementById('header-hijri-date').textContent = `🌙 ${hDate}`;
+
       const time12 = `${pad(h % 12 || 12)}:${pad(m)}:${pad(s)} ${h >= 12 ? 'PM' : 'AM'}`;
       const time24 = `${pad(h)}:${pad(m)}:${pad(s)}`;
       const displayTime = is24H ? time24 : time12;
@@ -834,7 +1150,19 @@
       const container = document.getElementById('settings-sound-list');
       container.innerHTML = SOUNDS.map(s => {
         const sel = s.id === currentSound;
-        return `<div onclick="selectSound('${s.id}')" class="flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-sky-500/10 border-sky-500 text-sky-500' : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800'}"><div><div class="text-xs font-bold">${s.name}</div><div class="text-[10px] text-slate-400">${s.desc}</div></div><button onclick="event.stopPropagation(); playSoundTone('${s.id}')" class="p-1 px-2 text-xs bg-slate-200 dark:bg-slate-700 rounded-md">Preview</button></div>`;
+        const isCustom = s.id.startsWith('custom_alarm');
+        return `
+          <div onclick="selectSound('${s.id}')" class="flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all ${sel ? 'bg-sky-500/10 border-sky-500 text-sky-500 shadow-sm' : 'bg-white/40 dark:bg-slate-800/60 border-white/20 dark:border-white/10 hover:border-slate-300 dark:hover:border-slate-700'}">
+            <div class="flex-1 min-w-0 pr-2">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-xs font-bold truncate">${s.name}</span>
+                ${isCustom ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">Imported</span>' : ''}
+                ${sel ? '<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-600 dark:text-sky-400">Active</span>' : ''}
+              </div>
+              <div class="text-[10px] text-slate-400 truncate mt-0.5">${s.desc}</div>
+            </div>
+            <button onclick="event.stopPropagation(); previewSoundFile('${s.id}')" class="py-1 px-2.5 text-xs font-medium bg-white/60 dark:bg-slate-700 rounded-lg hover:bg-sky-500 hover:text-white transition-all shadow-sm shrink-0">Preview</button>
+          </div>`;
       }).join('');
       document.getElementById('modal-settings').classList.remove('hidden');
     }
@@ -869,7 +1197,7 @@
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 20;
+      camera.position.z = 24;
 
       const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -879,20 +1207,20 @@
       const group = new THREE.Group();
       scene.add(group);
 
-      const pCount = 800;
+      const pCount = 850;
       const pos = new Float32Array(pCount * 3);
       for (let i = 0; i < pCount; i++) {
         const u = Math.random() * Math.PI * 2;
         const v = Math.random() * Math.PI * 2;
-        const R = 8.0 + (Math.random() - 0.5) * 2;
-        const r = 2.0 + (Math.random() - 0.5) * 1;
+        const R = 8.5 + (Math.random() - 0.5) * 2;
+        const r = 2.2 + (Math.random() - 0.5) * 1;
         pos[i * 3] = (R + r * Math.cos(v)) * Math.cos(u);
         pos[i * 3 + 1] = (R + r * Math.cos(v)) * Math.sin(u);
         pos[i * 3 + 2] = r * Math.sin(v);
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      const mat = new THREE.PointsMaterial({ size: 0.12, color: 0x38bdf8, transparent: true, opacity: 0.5 });
+      const mat = new THREE.PointsMaterial({ size: 0.12, color: 0x818cf8, transparent: true, opacity: 0.45 });
       const points = new THREE.Points(geo, mat);
       group.add(points);
 
@@ -916,6 +1244,7 @@
       renderAnalogDialTicks();
       tickLiveClock();
       updateTimerUI();
+      updateQuoteUI();
       initThree();
       try {
         const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ');
